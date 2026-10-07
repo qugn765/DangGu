@@ -156,6 +156,18 @@ label.f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:60
 .tally span{font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tally .m{background:var(--felt-soft);color:var(--felt-2)}
 .tally .p{background:var(--red-soft);color:var(--red)}
+.tally .c{background:rgba(91,140,255,.14);color:var(--blue)}
+.score{flex-direction:column;align-items:stretch;gap:0}
+.score-top{display:flex;align-items:center;gap:12px}
+.score-bot{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.score-bot .tally{margin-top:0}
+.fixlbl{font-size:11px;color:var(--muted);font-weight:600}
+.fix{border:1px solid var(--border-2);background:none;color:var(--text-2);border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
+.fix:active{background:var(--surface-3)}
+.undo:disabled,.hit:disabled{opacity:.3}
+.ring.cush{background:conic-gradient(var(--blue) calc(var(--p)*1%), var(--surface-3) 0)}
+.ring.cush small{color:var(--blue);font-weight:700}
+.phase{display:inline-block;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;background:rgba(91,140,255,.16);color:var(--blue);margin-top:4px}
 .tally small{font-weight:500;opacity:.8}
 
 /* history */
@@ -298,9 +310,15 @@ const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 const ICON_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>`;
 
 // ───────── 순위 계산 ─────────
-const ratio = s => s.dama ? s.remaining / s.dama : 1;
+// 4구 마무리 3쿠션: remaining = 남은 다마 + 남은 3쿠션 점수(1개 = 10점). 다마를 다 빼면 3쿠션 단계로 넘어감
+const cushOf = s => s.cushion || 0;
+const damaLeft = (s, v = s.remaining) => Math.max(0, v - cushOf(s));
+const cushLeftN = (s, v = s.remaining) => Math.min(v, cushOf(s)) / 10;
+const joinLeft = (s, d, c) => d > 0 ? d + cushOf(s) : Math.max(0, Math.min(c, cushOf(s) / 10)) * 10;
+const fmtLeft = (s, v) => !cushOf(s) || v > cushOf(s) ? `${v - cushOf(s)}` : `3쿠 ${v / 10}개`;
+const ratio = s => { const t = s.dama + cushOf(s); return t ? s.remaining / t : 1; };
 const stepOf = () => 10;   // 4구·3구 모두 10점 단위
-const tally = s => `<div class="tally"><span class="m">−${s.minus || 0} <small>${s.minusN || 0}번</small></span>${s.plus ? `<span class="p">+${s.plus} <small>${s.plusN || 0}번</small></span>` : ''}</div>`;
+const tally = s => `<div class="tally"><span class="m">−${s.minus || 0} <small>${s.minusN || 0}번</small></span>${cushOf(s) ? `<span class="c">3쿠 ${(s.cmin || 0) / 10}/${cushOf(s) / 10}</span>` : ''}${s.plus ? `<span class="p">빡 +${s.plus} <small>${s.plusN || 0}번</small></span>` : ''}</div>`;
 // 저장된 게임의 순위 배열 (예전 기록은 승자/꼴찌/남은 비율로 추정)
 function ranksOf(g){
   if (g.sides.every(s => s.rank)) return g.sides.map(s => s.rank);
@@ -447,6 +465,10 @@ function renderSetup(){
     </div>
     ${body}
   </div>
+  ${ui.kind === '4구' ? `<div class="card">
+    <span class="label">마무리 3쿠션 · 다마를 다 빼고 나서 칠 3쿠션 개수 (1개 = 10점)</span>
+    <div class="row"><b class="grow">3쿠션</b>${stepper('data-cush="1"', ui.cushion ?? 2, 1)}<span class="muted">개</span></div>
+  </div>` : ''}
   <div class="card">
     <span class="label">게임비 · 꼴찌가 전액</span>
     <div class="row"><input id="fee" class="grow num" type="number" inputmode="numeric" step="1000" value="${ui.fee}" style="text-align:left;font-weight:700"><span class="muted">원</span></div>
@@ -460,11 +482,12 @@ function renderSetup(){
 
 function buildSides(){
   const ps = activePlayers();
+  const cush = ui.kind === '4구' ? Math.max(0, Number($('[data-cush]')?.value ?? ui.cushion ?? 2) || 0) * 10 : 0;
   if (ui.mode === '팀전') {
     const sides = ['A','B'].map(t => {
       const mem = ps.filter(p => setup.picked[p.id] === t);
       const dama = Number($(`[data-tdama="${t}"]`)?.value) || 0;
-      return { team: t, members: mem.map(p => ({id: p.id, name: p.name})), dama, remaining: dama };
+      return { team: t, members: mem.map(p => ({id: p.id, name: p.name})), dama, cushion: cush, remaining: dama + cush };
     });
     if (sides.some(s => !s.members.length)) return toast('A팀, B팀 모두 선수를 넣어주세요');
     if (sides.some(s => s.dama <= 0)) return toast('팀 다마를 입력하세요');
@@ -472,7 +495,7 @@ function buildSides(){
   }
   const sel = ps.filter(p => setup.picked[p.id]);
   if (sel.length < 2) return toast('2명 이상 선택하세요');
-  const sides = sel.map(p => { const dama = Number($(`[data-dama="${p.id}"]`)?.value) || 0; return { members: [{id: p.id, name: p.name}], dama, remaining: dama }; });
+  const sides = sel.map(p => { const dama = Number($(`[data-dama="${p.id}"]`)?.value) || 0; return { members: [{id: p.id, name: p.name}], dama, cushion: cush, remaining: dama + cush }; });
   if (sides.some(s => s.dama <= 0)) return toast('다마를 입력하세요');
   return sides;
 }
@@ -484,18 +507,32 @@ function renderLive(){
   const order = live.sides.map((_, i) => i).sort((a, b) => (live.sides[a].rank || 99) - (live.sides[b].rank || 99) || a - b);
   const sides = order.map(i => {
     const s = live.sides[i];
-    const pct = s.dama ? Math.max(0, Math.min(100, (s.dama - s.remaining) / s.dama * 100)) : 0;
+    const c = cushOf(s);
     const fin = s.rank && s.remaining <= 0;
+    const inCush = c > 0 && s.remaining > 0 && s.remaining <= c;
+    const dl = damaLeft(s);
+    const big = inCush ? s.remaining / 10 : dl;
+    const pct = inCush ? (c - s.remaining) / c * 100 : s.dama ? Math.max(0, Math.min(100, (s.dama - dl) / s.dama * 100)) : 0;
+    const sub = fin ? `<div class="fin-note">${s.finishMin}분에 끝</div>`
+      : inCush ? `<span class="phase">다마 끝 · 3쿠션 ${(c - s.remaining) / 10}/${c / 10}</span>`
+      : `<span class="sub num">${s.dama - dl} / ${s.dama}${c ? ` · 3쿠 ${c / 10}개` : ''}</span>`;
     return `<div class="score ${fin ? 'fin' : ''}">
-      <div class="who">
-        ${s.rank ? `<span class="rk ${s.rank===1?'r1':''} ${s.rank===n?'last':''}">${s.rank}등</span> ` : ''}${s.team ? `<span class="team-badge ${s.team}">${s.team}</span> ` : ''}${avGroup(s.members, s.team ? 'sm' : '')}
-        <b>${sideNames(s)}</b>
-        ${fin ? `<div class="fin-note">${s.finishMin}분에 끝</div>` : `<span class="sub num">${s.dama - s.remaining} / ${s.dama}</span>`}
-        ${tally(s)}
+      <div class="score-top">
+        <div class="who">
+          ${s.rank ? `<span class="rk ${s.rank===1?'r1':''} ${s.rank===n?'last':''}">${s.rank}등</span> ` : ''}${s.team ? `<span class="team-badge ${s.team}">${s.team}</span> ` : ''}${avGroup(s.members, s.team ? 'sm' : '')}
+          <b>${sideNames(s)}</b>
+          ${sub}
+        </div>
+        <button class="undo" data-bbak="${i}" ${fin || inCush ? 'disabled' : ''} aria-label="빡 +${step}" title="빡 (점수 추가)">+${step}</button>
+        <div class="ring ${inCush ? 'cush' : ''}" style="--p:${pct}"><div><b>${big}</b><small>${inCush ? '3쿠 남음' : '남음'}</small></div></div>
+        <button class="hit" data-minus="${i}" ${fin ? 'disabled' : ''} aria-label="${step} 빼기">−${step}</button>
       </div>
-      <button class="undo" data-plus="${i}" aria-label="${step} 더하기">+${step}</button>
-      <div class="ring" style="--p:${pct}"><div><b>${s.remaining}</b><small>남음</small></div></div>
-      <button class="hit" data-minus="${i}" ${fin ? 'disabled' : ''} aria-label="${step} 빼기">−${step}</button>
+      <div class="score-bot">
+        ${tally(s)}<span class="grow"></span>
+        <span class="fixlbl">정정</span>
+        <button class="fix" data-fix="${i}" data-d="-1" ${fin ? 'disabled' : ''}>−${step}</button>
+        <button class="fix" data-fix="${i}" data-d="1">+${step}</button>
+      </div>
     </div>`;
   }).join('');
   const left = live.sides.filter(s => s.remaining > 0).length;
@@ -503,7 +540,7 @@ function renderLive(){
   <div class="card live-head">
     <div class="live-meta"><span class="pill rec">진행 중</span><span class="pill felt">${live.kind} ${live.mode}${n > 2 ? ` · ${n}명` : ''}</span></div>
     <div class="timer" id="timer">00:00</div>
-    <div class="muted">${fmtDate(live.start)} 시작 · ${n > 2 && left < n ? `${n - left}명 끝 · ${left}명 남음` : `칠 때마다 −${step} · 벌점/정정은 +${step}`}</div>
+    <div class="muted">${fmtDate(live.start)} 시작 · ${n > 2 && left < n ? `${n - left}명 끝 · ${left}명 남음` : `−${step} 치기 · +${step} 빡 · 실수는 정정`}</div>
   </div>
   ${sides}
   <div class="actions">
@@ -519,13 +556,34 @@ function tick(){
   el.textContent = (h ? h + ':' + pad(m) : pad(m)) + ':' + pad(s);
 }
 
-function liveHit(i){
+// kind: 'hit'(−, 기록됨) | 'bbak'(빡 +, 기록됨) | 'fixMinus' / 'fixPlus'(정정, 누적에 안 들어감 — 실수한 걸 취소)
+function liveChange(i, kind){
   const s = live.sides[i];
-  if (s.remaining <= 0) return;
-  const step = Math.min(stepOf(live), s.remaining);
-  s.remaining -= step; s.minus = (s.minus || 0) + step; s.minusN = (s.minusN || 0) + 1;
-  if (navigator.vibrate) navigator.vibrate(15);
-  if (s.remaining === 0) {
+  const c = cushOf(s), step = stepOf(live);
+  const wasFin = s.remaining <= 0;
+  if (kind === 'hit' || kind === 'fixMinus') {
+    if (wasFin) return;
+    const inC = c > 0 && s.remaining <= c;
+    const amt = Math.min(step, s.remaining);
+    s.remaining -= amt;
+    if (kind === 'hit') {
+      if (inC) { s.cmin = (s.cmin || 0) + amt; s.cminN = (s.cminN || 0) + 1; }
+      else { s.minus = (s.minus || 0) + amt; s.minusN = (s.minusN || 0) + 1; }
+      if (navigator.vibrate) navigator.vibrate(15);
+    } else if (s.plus > 0) {   // 실수로 누른 빡 취소
+      s.plus = Math.max(0, s.plus - amt); s.plusN = Math.max(0, (s.plusN || 0) - 1);
+    }
+  } else if (kind === 'bbak') {
+    if (wasFin || (c > 0 && s.remaining <= c)) return;   // 3쿠션 단계엔 빡 없음
+    s.remaining += step; s.plus = (s.plus || 0) + step; s.plusN = (s.plusN || 0) + 1;
+  } else {   // fixPlus: 실수로 누른 − 취소
+    s.remaining += step;
+    const inC = c > 0 && s.remaining <= c;
+    if (inC && s.cmin > 0) { s.cmin -= step; s.cminN = Math.max(0, (s.cminN || 0) - 1); }
+    else if (!inC && s.minus > 0) { s.minus = Math.max(0, s.minus - step); s.minusN = Math.max(0, (s.minusN || 0) - 1); }
+  }
+  const nowFin = s.remaining <= 0;
+  if (!wasFin && nowFin) {
     const n = live.sides.length;
     s.finishMin = elapsedMin(live.start);
     s.rank = live.sides.filter(x => x.rank && x.remaining <= 0).length + 1;
@@ -542,22 +600,16 @@ function liveHit(i){
     }
     toast(`${sideLabel(s)} ${s.rank}등! (${s.finishMin}분)`);
   }
-  pushLive(); render();
-}
-function liveUndo(i){
-  const s = live.sides[i];
-  const wasFin = s.remaining <= 0;
-  const step = stepOf(live);
-  s.remaining += step; s.plus = (s.plus || 0) + step; s.plusN = (s.plusN || 0) + 1;
-  if (wasFin) {
+  if (wasFin && !nowFin) {
     delete s.rank; delete s.finishMin;
     live.events = (live.events || []).filter(e => e.side !== i);
+    // 남은 사람에게 자동으로 붙었던 꼴찌 순위 해제 + 끝난 사람들 순위 재정렬
+    live.sides.forEach(x => { if (x.remaining > 0) delete x.rank; });
+    live.sides.map((x, j) => j).filter(j => live.sides[j].remaining <= 0)
+      .sort((a, b) => live.sides[a].finishMin - live.sides[b].finishMin)
+      .forEach((j, k) => live.sides[j].rank = k + 1);
   }
-  // 남은 사람에게 자동으로 붙었던 꼴찌 순위 해제 + 끝난 사람들 순위 재정렬
-  live.sides.forEach(x => { if (x.remaining > 0) delete x.rank; });
-  live.sides.map((x, j) => j).filter(j => live.sides[j].remaining <= 0)
-    .sort((a, b) => live.sides[a].finishMin - live.sides[b].finishMin)
-    .forEach((j, k) => live.sides[j].rank = k + 1);
+  if (!wasFin && !nowFin && c > 0 && kind === 'hit' && s.remaining === c) toast(`${sideLabel(s)} 다마 끝! 3쿠션 ${c / 10}개`);
   pushLive(); render();
 }
 
@@ -593,8 +645,9 @@ function openResult(game, mode){
         return `<div class="ev">
           <div class="ev-head"><span class="rk ${ranks[i]===1?'r1':''}">${ranks[i]}등</span>${sideLabel(S[i])} 끝
             <span class="grow"></span><input type="number" inputmode="numeric" data-evmin="${i}" value="${evMin[i] ?? ''}" placeholder="분" style="width:64px;padding:7px 4px"><span class="muted">분</span></div>
-          ${after.map(j => `<div class="ev-row">${av(S[j].members[0].name, 'sm')}<span class="grow">${sideLabel(S[j])} 남은 다마</span>
-            <input type="number" inputmode="numeric" data-evrem="${i}:${j}" value="${evRem[i]?.[j] ?? ''}" placeholder="-"></div>`).join('')}
+          ${after.map(j => { const ev = evRem[i]?.[j]; const cj = cushOf(S[j]); return `<div class="ev-row">${av(S[j].members[0].name, 'sm')}<span class="grow">${sideLabel(S[j])} 남은 다마</span>
+            <input type="number" inputmode="numeric" data-evrem="${i}:${j}" value="${ev != null ? damaLeft(S[j], ev) : ''}" placeholder="-">
+            ${cj ? `<input type="number" inputmode="numeric" data-evc="${i}:${j}" value="${ev != null ? cushLeftN(S[j], ev) : ''}" placeholder="-" style="width:48px"><span class="muted">3쿠</span>` : ''}</div>`; }).join('')}
         </div>`;
       }).join('')}` : '';
     root.innerHTML = `<div class="modal" id="mbg"><div class="sheet">
@@ -604,8 +657,9 @@ function openResult(game, mode){
       ${order.map(i => { const s = S[i]; return `<div class="picked">
         ${rankSel(i)}
         ${s.team ? `<span class="team-badge ${s.team}">${s.team}</span>` : ''}${avGroup(s.members, s.team ? 'sm' : '')}
-        <div class="grow"><b>${sideNames(s)}</b><div class="muted">다마 ${s.dama}</div></div>
-        <input type="number" inputmode="numeric" data-rem="${i}" value="${s.remaining}" style="font-weight:700;width:72px">
+        <div class="grow"><b>${sideNames(s)}</b><div class="muted">다마 ${s.dama}${cushOf(s) ? ` + 3쿠 ${cushOf(s) / 10}개` : ''}</div></div>
+        <input type="number" inputmode="numeric" data-rem="${i}" value="${damaLeft(s)}" style="font-weight:700;width:64px" aria-label="남은 다마">
+        ${cushOf(s) ? `<input type="number" inputmode="numeric" data-cr="${i}" value="${cushLeftN(s)}" style="font-weight:700;width:46px" aria-label="남은 3쿠션"><span class="muted">3쿠</span>` : ''}
       </div>`; }).join('')}
       ${evHtml}
       <div class="grid2" style="margin-top:16px">
@@ -627,8 +681,12 @@ function openResult(game, mode){
 
   root.onchange = e => {
     const d = e.target.dataset, v = e.target.value;
-    if (d.rem !== undefined) {
-      S[d.rem].remaining = Math.max(0, Number(v) || 0);
+    const remIdx = d.rem ?? d.cr;
+    if (remIdx !== undefined) {
+      const si = Number(remIdx), dIn = root.querySelector(`[data-rem="${si}"]`), cIn = root.querySelector(`[data-cr="${si}"]`);
+      const dv = Math.max(0, Number(dIn?.value) || 0), cv = Math.max(0, Number(cIn?.value) || 0);
+      S[si].remaining = cushOf(S[si]) ? joinLeft(S[si], dv, cv) : dv;
+      if (cIn && dv > 0) cIn.value = cushOf(S[si]) / 10;
       if (!touchedRank) ranks = autoRanks(S.map((s, i) => ({...s, finishMin: evMin[i]})));
       if (!touchedPay) payer = ranks.indexOf(n);
     }
@@ -640,13 +698,18 @@ function openResult(game, mode){
       if (!touchedPay) payer = ranks.indexOf(n);
     }
     if (d.evmin !== undefined) evMin[d.evmin] = numOrNull(v);
-    if (d.evrem !== undefined) { const [i, j] = d.evrem.split(':').map(Number); (evRem[i] ??= [])[j] = numOrNull(v); }
+    const evKey = d.evrem ?? d.evc;
+    if (evKey !== undefined) {
+      const [i, j] = evKey.split(':').map(Number);
+      const dv = numOrNull(root.querySelector(`[data-evrem="${evKey}"]`)?.value), cv = numOrNull(root.querySelector(`[data-evc="${evKey}"]`)?.value);
+      (evRem[i] ??= [])[j] = dv == null && cv == null ? null : cushOf(S[j]) ? joinLeft(S[j], dv || 0, cv ?? cushOf(S[j]) / 10) : dv;
+    }
     if (e.target.id === 'rPay') { touchedPay = true; payer = Number(v); }
     if (e.target.id === 'rFee') fee = Number(v) || 0;
     if (e.target.id === 'rStart') start = v;
     if (e.target.id === 'rDur') dur = v;
     if (d.rank !== undefined) draw();
-    if (d.rem !== undefined) {
+    if (remIdx !== undefined) {
       // 끝난 사람 구성이 바뀌면 다시 그리고, 아니면 값만 갱신 (바로 저장 버튼을 눌러도 클릭이 씹히지 않게)
       const finKey = S.map(s => s.remaining <= 0 ? 1 : 0).join('');
       if (finKey !== lastFinKey) { lastFinKey = finKey; draw(); }
@@ -678,7 +741,7 @@ function openResult(game, mode){
     if (n === 2 && fins.length && events[0].min == null) events[0].min = D;
     const sides = S.map((s, i) => {
       const o = { members: s.members, dama: s.dama, remaining: s.remaining, rank: ranks[i] };
-      ['minus','minusN','plus','plusN'].forEach(k => { if (s[k]) o[k] = s[k]; });
+      ['cushion','minus','minusN','plus','plusN','cmin','cminN'].forEach(k => { if (s[k]) o[k] = s[k]; });
       if (s.team) o.team = s.team;
       const ev = events.find(x => x.side === i); o.finishMin = ev ? ev.min : null;
       return o;
@@ -713,17 +776,17 @@ function renderHistory(){
     lastDay = day;
     const r = ranksOf(g), n = g.sides.length;
     const order = g.sides.map((_, i) => i).sort((a, b) => r[a] - r[b]);
-    const sides = order.map(i => { const s = g.sides[i]; const pct = s.dama ? (s.dama - s.remaining) / s.dama * 100 : 0;
+    const sides = order.map(i => { const s = g.sides[i]; const tot = s.dama + cushOf(s); const pct = tot ? (tot - s.remaining) / tot * 100 : 0;
       return `<div class="gs ${r[i]===1?'win':''}">
         <span class="rk ${r[i]===1?'r1':''} ${i===g.payer?'last':''}">${r[i]}등</span>
         ${s.team ? avGroup(s.members, 'sm') : av(s.members[0].name)}
         <div class="name">${s.team ? `<span class="team-badge ${s.team}">${s.team}</span> ` : ''}${sideNames(s)}${i===g.payer?'<span class="badge pay">게임비</span>':''}
           <div class="mini"><i style="width:${pct}%"></i></div></div>
-        <div class="rem num">${s.remaining > 0 ? `<b>${s.remaining}</b> 남음` : `<b style="color:var(--gold)">${s.finishMin != null ? s.finishMin + '분' : '완료'}</b>`}<br><small class="muted">${s.minus != null ? `−${s.minus}${s.plus ? ` / +${s.plus}` : ''}` : `${s.dama - s.remaining}/${s.dama}`}</small></div>
+        <div class="rem num">${s.remaining > 0 ? `<b>${fmtLeft(s, s.remaining)}</b> 남음` : `<b style="color:var(--gold)">${s.finishMin != null ? s.finishMin + '분' : '완료'}</b>`}<br><small class="muted">${s.minus != null ? `−${s.minus}${s.cmin ? ` · 3쿠 ${s.cmin / 10}` : ''}${s.plus ? ` / 빡 +${s.plus}` : ''}` : `${s.dama - damaLeft(s)}/${s.dama}`}</small></div>
       </div>`; }).join('');
     const evs = (g.events || []).filter(e => e.min != null || (e.rem || []).some(v => v != null)).sort((a, b) => (a.min ?? 1e9) - (b.min ?? 1e9));
     const timeline = n > 2 && evs.length ? `<div class="timeline">${evs.map(e => {
-      const others = (e.rem || []).map((v, j) => v != null ? `${sideLabel(g.sides[j])} ${v}` : null).filter(Boolean);
+      const others = (e.rem || []).map((v, j) => v != null ? `${sideLabel(g.sides[j])} ${fmtLeft(g.sides[j], v)}` : null).filter(Boolean);
       return `<div class="tl"><span class="t">${e.min != null ? e.min + '분' : '-'}</span><span><b>${sideLabel(g.sides[e.side])} ${r[e.side]}등</b>${others.length ? ' · 남은 다마 ' + others.join(', ') : ''}</span></div>`;
     }).join('')}</div>` : '';
     return head + `<div class="game">
@@ -762,7 +825,7 @@ function renderStats(){
     totalFee += g.fee || 0; totalMin += g.durationMin || 0;
     g.sides.forEach((s, i) => s.members.forEach(m => {
       const p = get(m);
-      p.games++; p.rem += s.remaining; p.dama += s.dama; p.rankSum += r[i];
+      p.games++; p.rem += s.remaining; p.dama += s.dama + cushOf(s); p.rankSum += r[i];
       p.score += n > 1 ? (n - r[i]) / (n - 1) : 0;
       if (r[i] === 1) { p.wins++; if (s.finishMin != null) p.firstMins.push(s.finishMin); }
       if (i === g.payer) { p.last++; p.paid += (g.fee || 0) / s.members.length; }
@@ -892,8 +955,9 @@ $('#app').addEventListener('click', async e => {
     else openResult(game, 'manual');
   }
   // 라이브
-  if (d.minus !== undefined) liveHit(Number(d.minus));
-  if (d.plus !== undefined) liveUndo(Number(d.plus));
+  if (d.minus !== undefined) liveChange(Number(d.minus), 'hit');
+  if (d.bbak !== undefined) liveChange(Number(d.bbak), 'bbak');
+  if (d.fix !== undefined) liveChange(Number(d.fix), d.d === '1' ? 'fixPlus' : 'fixMinus');
   if (t.id === 'finishBtn') openResult(live, 'live');
   if (t.id === 'cancelLive' && confirm('진행 중인 게임을 취소할까요? (기록되지 않아요)')) { live = null; await store.setLive(null); render(); }
   // 기록
@@ -932,6 +996,7 @@ $('#app').addEventListener('change', async e => {
   if (d.dama) setup.dama[d.dama] = Number(e.target.value);
   if (d.tdama) setup.teamDama[d.tdama] = Number(e.target.value);
   if (e.target.id === 'fee') { ui.fee = Number(e.target.value) || 0; saveUi(); }
+  if (d.cush) { ui.cushion = Math.max(0, Number(e.target.value) || 0); e.target.value = ui.cushion; saveUi(); }
   if (d.p4) await store.updatePlayer(d.p4, { dama4: Number(e.target.value) || 0 });
   if (d.p3) await store.updatePlayer(d.p3, { dama3: Number(e.target.value) || 0 });
   if (e.target.id === 'importFile' && e.target.files[0]) {
