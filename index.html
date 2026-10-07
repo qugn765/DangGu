@@ -299,7 +299,7 @@ const ICON_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 
 // ───────── 순위 계산 ─────────
 const ratio = s => s.dama ? s.remaining / s.dama : 1;
-const stepOf = g => g.kind === '3구' ? 1 : 10;   // 4구는 10씩, 3구는 1씩
+const stepOf = () => 10;   // 4구·3구 모두 10점 단위
 const tally = s => `<div class="tally"><span class="m">−${s.minus || 0} <small>${s.minusN || 0}번</small></span>${s.plus ? `<span class="p">+${s.plus} <small>${s.plusN || 0}번</small></span>` : ''}</div>`;
 // 저장된 게임의 순위 배열 (예전 기록은 승자/꼴찌/남은 비율로 추정)
 function ranksOf(g){
@@ -409,7 +409,7 @@ const stepper = (attr, val, step) => `<div class="stepper"><button data-step="${
 function renderSetup(){
   const ps = activePlayers();
   const team = ui.mode === '팀전';
-  const step = ui.kind === '3구' ? 1 : 10;
+  const step = 10;
   let body = '';
   if (!ps.length) {
     body = `<div class="empty"><span class="big">🎱</span>먼저 <b>선수</b> 탭에서 친구들을 등록하세요</div>`;
