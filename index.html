@@ -404,8 +404,9 @@ const pname = id => state.players.find(p => p.id === id)?.name;
 const defDama = (p, kind) => kind === '3구' ? (p.dama3 ?? 20) : (p.dama4 ?? 150);
 const saveUi = () => lsSet('danggu-ui', ui);
 const DEFAULT_FEE = 10000;   // 게임비 기본 1만원 (입력은 천원 단위)
-const FEE_PRESETS = [10000, 12000, 15000, 20000];
-const feePresets = attr => `<div class="presets">${FEE_PRESETS.map(v => `<button ${attr}="${v}">${v / 1000}</button>`).join('')}</div>`;
+const FEE_STEPS = [-1, 1, 5, 10];   // 천원 단위 증감 버튼
+const feePresets = attr => `<div class="presets">${FEE_STEPS.map(v => `<button ${attr}="${v}">${v > 0 ? '+' : '−'}${Math.abs(v)}</button>`).join('')}</div>`;
+const bumpFee = (input, delta) => { const v = Math.max(0, (Number(input.value) || 0) + Number(delta)); input.value = v; return v * 1000; };
 const pushLive = () => store.setLive(live).catch(e => toast('동기화 실패: ' + (e.code || e.message)));
 
 async function keepAwake(on){
@@ -736,7 +737,7 @@ function openResult(game, mode){
   };
   root.onclick = async e => {
     if (e.target.id === 'rCancel' || e.target.id === 'mbg') { root.innerHTML = ''; return; }
-    if (e.target.dataset.mfee) { fee = Number(e.target.dataset.mfee); $('#rFee').value = fee / 1000; return; }
+    if (e.target.dataset.mfee) { e.preventDefault(); fee = bumpFee($('#rFee'), e.target.dataset.mfee); return; }
     if (e.target.id !== 'rSave') return;
     // 포커스 중인 입력값 반영
     document.activeElement?.dispatchEvent?.(new Event('change', {bubbles: true}));
@@ -798,7 +799,7 @@ function openFeeEdit(g){
   root.onclick = async e => {
     const t = e.target;
     if (t.id === 'qCancel' || t.id === 'mbg') { root.innerHTML = ''; return; }
-    if (t.dataset.qfee) { $('#qFee').value = Number(t.dataset.qfee) / 1000; return; }
+    if (t.dataset.qfee) { bumpFee($('#qFee'), t.dataset.qfee); return; }
     if (t.id === 'qSave') {
       const fee = Math.round((Number($('#qFee').value) || 0) * 1000);
       const { id, ...rest } = g;
