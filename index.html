@@ -764,6 +764,15 @@ function openResult(game, mode){
     </div></div>`;
   };
   applyEv();
+  // 결과만 입력(1:1·팀전): 처음부터 1등으로 잡힌 쪽은 남은 다마·3쿠 0
+  const zeroFirst = () => {
+    if (mode !== 'manual' || evMode) return;
+    S.forEach((s, i) => {
+      if (ranks[i] === 1) s.remaining = 0;
+      else if (s.remaining <= 0) s.remaining = s.dama + cushOf(s);   // 1등에서 내려간 쪽은 다시 처음 다마로
+    });
+  };
+  zeroFirst();
   draw();
   let lastFinKey = S.map(s => s.remaining <= 0 ? 1 : 0).join('');
 
@@ -784,6 +793,7 @@ function openResult(game, mode){
       if (j >= 0 && j !== i) ranks[j] = ranks[i];   // 순위 맞바꾸기
       ranks[i] = nr;
       if (nr === 1 && !evMode) S[i].remaining = 0;   // 1등으로 고르면 남은 다마·3쿠 0
+      zeroFirst();
       applyEv();
       if (!touchedPay) payer = ranks.indexOf(n);
     }
