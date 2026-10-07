@@ -114,7 +114,11 @@ label.f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:60
 .stepper button{width:36px;height:40px;border:0;background:none;color:var(--text-2);font-size:18px;cursor:pointer}
 .stepper input{border:0;background:none;width:60px;padding:8px 0;font-weight:700}
 .presets{display:flex;gap:6px;margin-top:8px}
-.pill,.fee-btn{white-space:nowrap;flex:none}
+.pill,.wp{display:block;font-size:11px;color:var(--gold);font-weight:700;margin-top:3px;letter-spacing:0}
+.wp:empty{display:none}
+.trend{font-size:12px;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.trend .up{color:var(--red)} .trend .down{color:var(--felt-2)}
+.fee-btn{white-space:nowrap;flex:none}
 .game-head .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .fee-btn{border:1px solid var(--border-2);background:var(--surface-2);color:var(--text);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;cursor:pointer;margin-left:-2px}
 .presets button{flex:1;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:9px;padding:7px 0;font-size:12px;font-weight:600;cursor:pointer}
@@ -346,6 +350,64 @@ function autoRanks(sides){
 const sideLabel = s => s.team ? `${s.team}팀` : esc(s.members[0].name);
 const sideNames = s => s.members.map(m => esc(m.name)).join(', ');
 
+// ───────── 예상 승률 모델 ─────────
+// 득점 속도 = 친 점수 / 친 시간 × 참가 편 수 (여러 명이면 테이블 시간을 나눠 쓰므로 1인 기준으로 환산)
+const scoredOf = s => Math.max(0, s.dama + cushOf(s) - s.remaining + (s.plus || 0));
+function paceTable(){
+  const P = {}; let gs = 0, gt = 0;
+  state.games.forEach(g => {
+    const n = g.sides.length; if (!g.durationMin) return;
+    g.sides.forEach(s => {
+      const t = s.finishMin ?? g.durationMin; if (!t) return;
+      const sc = scoredOf(s) * n; gs += sc; gt += t;
+      s.members.forEach(m => { const p = P[m.id] ??= { s: 0, t: 0 }; p.s += sc; p.t += t; });
+    });
+  });
+  return { P, global: gt > 0 ? gs / gt : 12 };
+}
+const PRIOR_MIN = 30;   // 기록이 적은 선수는 전체 평균 쪽으로 당김
+const paceOf = (id, table) => { const p = table.P[id]; return p ? (p.s + table.global * PRIOR_MIN) / (p.t + PRIOR_MIN) : table.global; };
+function mulberry(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+// 남은 점수 ÷ 득점 속도(과거 기록 + 이번 게임 속도 혼합)로 끝나는 시간을 시뮬레이션 → 1등/꼴찌 확률
+function predict(sides, elapsed){
+  const n = sides.length, table = paceTable(), rnd = mulberry(7), SIMS = 1500, SIG = 0.35, K = 15;
+  const base = sides.map(s => {
+    const hist = s.members.reduce((a, m) => a + paceOf(m.id, table), 0) / s.members.length / n;
+    const done = (s.minus || 0) + (s.cmin || 0);
+    const pace = elapsed > 0 ? (done + hist * K) / (elapsed + K) : hist;
+    return { pace: Math.max(pace, 0.1), fin: s.remaining <= 0 };
+  });
+  const win = Array(n).fill(0), last = Array(n).fill(0);
+  for (let k = 0; k < SIMS; k++) {
+    const T = sides.map((s, i) => {
+      if (base[i].fin) return -1e4 + (s.finishMin ?? 0);
+      const u1 = rnd() || 1e-9, u2 = rnd(), z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      return s.remaining / (base[i].pace * Math.exp(SIG * z));
+    });
+    let mi = 0, ma = 0; T.forEach((t, i) => { if (t < T[mi]) mi = i; if (t > T[ma]) ma = i; });
+    win[mi]++; last[ma]++;
+  }
+  return sides.map((s, i) => ({ win: win[i] / SIMS, last: last[i] / SIMS, eta: base[i].fin ? 0 : s.remaining / base[i].pace }));
+}
+const pctS = v => Math.round(v * 100) + '%';
+const wpText = (pr, n, fin) => fin ? '' : `1등 ${pctS(pr.win)}${n >= 3 ? ` · 꼴찌 ${pctS(pr.last)}` : ''} · 약 ${Math.max(1, Math.round(pr.eta))}분`;
+
+// 세팅 화면: 선수/다마 바뀔 때마다 예상 승률 갱신 (다시 그리지 않고 글자만)
+function updateSetupWp(){
+  const els = [...document.querySelectorAll('[data-wp]')]; if (!els.length) return;
+  const cush = ui.kind === '4구' ? (Number($('[data-cush]')?.value ?? ui.cushion ?? 2) || 0) * 10 : 0;
+  const ps = activePlayers();
+  const sides = els.map(e => {
+    const k = e.dataset.wp;
+    if (k === 'A' || k === 'B') { const mem = ps.filter(p => setup.picked[p.id] === k); const dama = Number($(`[data-tdama="${k}"]`)?.value) || 0; return { members: mem.map(p => ({ id: p.id, name: p.name })), dama, cushion: cush, remaining: dama + cush }; }
+    const p = ps.find(x => x.id === k); const dama = Number($(`[data-dama="${k}"]`)?.value) || 0;
+    return { members: [{ id: p.id, name: p.name }], dama, cushion: cush, remaining: dama + cush };
+  });
+  if (sides.length < 2 || sides.some(s => !s.members.length || !s.dama)) { els.forEach(e => e.textContent = ''); return; }
+  const pr = predict(sides, 0);
+  els.forEach((e, i) => e.textContent = '예상 ' + wpText(pr[i], sides.length, false));
+}
+
 // ───────── 저장소 (Firebase 또는 로컬) ─────────
 const state = { players: [], games: [] };
 let store;
@@ -432,6 +494,7 @@ function render(){
   if (tab === 'stats') app.innerHTML = renderStats();
   if (tab === 'players') app.innerHTML = renderPlayers();
   if (tab === 'play' && live) { tick(); timerHandle = setInterval(tick, 1000); }
+  if (tab === 'play' && !live) updateSetupWp();
   keepAwake(!!live);
 }
 
@@ -454,14 +517,14 @@ function renderSetup(){
     let rows = '';
     if (!team) {
       const sel = ps.filter(p => setup.picked[p.id]);
-      rows = sel.map(p => `<div class="picked">${av(p.name)}<b class="grow">${esc(p.name)}</b>
+      rows = sel.map(p => `<div class="picked">${av(p.name)}<b class="grow">${esc(p.name)}<span class="wp" data-wp="${p.id}"></span></b>
         ${stepper(`data-dama="${p.id}"`, setup.dama[p.id] ?? defDama(p, ui.kind), step)}</div>`).join('');
     } else {
       rows = ['A','B'].map(t => {
         const mem = ps.filter(p => setup.picked[p.id] === t);
         const def = mem.length ? mem.reduce((s,p) => s + defDama(p, ui.kind), 0) : '';   // 팀 다마 = 팀원 다마 합
         return `<div class="picked"><span class="team-badge ${t}">${t}</span>
-          <div class="grow">${mem.length ? avGroup(mem.map(p => ({name: p.name})), 'sm') + ' <span class="muted">' + mem.map(p => esc(p.name)).join(', ') + '</span>' : '<span class="muted">선수를 선택하세요</span>'}</div>
+          <div class="grow">${mem.length ? avGroup(mem.map(p => ({name: p.name})), 'sm') + ' <span class="muted">' + mem.map(p => esc(p.name)).join(', ') + '</span>' : '<span class="muted">선수를 선택하세요</span>'}<span class="wp" data-wp="${t}"></span></div>
           ${stepper(`data-tdama="${t}"`, setup.teamDama[t] !== '' ? setup.teamDama[t] : def, step)}</div>`;
       }).join('');
     }
@@ -514,6 +577,7 @@ function renderLive(){
   const n = live.sides.length;
   const step = stepOf(live);
   const order = live.sides.map((_, i) => i).sort((a, b) => (live.sides[a].rank || 99) - (live.sides[b].rank || 99) || a - b);
+  const pr = live.sides.filter(x => x.remaining > 0).length >= 2 ? predict(live.sides, (Date.now() - new Date(live.start)) / 60000) : null;
   const sides = order.map(i => {
     const s = live.sides[i];
     const c = cushOf(s);
@@ -531,6 +595,7 @@ function renderLive(){
           ${s.rank ? `<span class="rk ${s.rank===1?'r1':''} ${s.rank===n?'last':''}">${s.rank}등</span> ` : ''}${s.team ? `<span class="team-badge ${s.team}">${s.team}</span> ` : ''}${avGroup(s.members, s.team ? 'sm' : '')}
           <b>${sideNames(s)}</b>
           ${sub}
+          ${pr ? `<span class="wp">${wpText(pr[i], n, s.remaining <= 0)}</span>` : ''}
         </div>
         <button class="undo" data-bbak="${i}" ${fin || inCush ? 'disabled' : ''} aria-label="빡 +${step}" title="빡 (점수 추가)">+${step}</button>
         <div class="ring ${inCush ? 'cush' : ''}" style="--p:${pct}"><div><b>${big}</b><small>${inCush ? '3쿠 남음' : '남음'}</small></div></div>
@@ -570,6 +635,7 @@ function liveChange(i, kind){
   const s = live.sides[i];
   const c = cushOf(s), step = stepOf(live);
   const wasFin = s.remaining <= 0;
+  const phaseC = c > 0 && s.remaining <= c;
   if (kind === 'hit' || kind === 'fixMinus') {
     if (wasFin) return;
     const inC = c > 0 && s.remaining <= c;
@@ -591,6 +657,8 @@ function liveChange(i, kind){
     if (inC && s.cmin > 0) { s.cmin -= step; s.cminN = Math.max(0, (s.cminN || 0) - 1); }
     else if (!inC && s.minus > 0) { s.minus = Math.max(0, s.minus - step); s.minusN = Math.max(0, (s.minusN || 0) - 1); }
   }
+  // 누를 때마다 기록: s=편 번호, t=시작 후 초, k=h(다마)/c(3쿠션)/b(빡)/f+/f-(정정)
+  (live.log ??= []).push({ s: i, t: Math.round((Date.now() - new Date(live.start)) / 1000), k: kind === 'hit' ? (phaseC ? 'c' : 'h') : kind === 'bbak' ? 'b' : kind === 'fixPlus' ? 'f+' : 'f-' });
   const nowFin = s.remaining <= 0;
   if (!wasFin && nowFin) {
     const n = live.sides.length;
@@ -777,6 +845,8 @@ function openResult(game, mode){
       durationMin: D, fee: Number(fee) || 0,
       sides, winner, payer, events,
       createdAt: game.createdAt || new Date().toISOString(),
+      ...(game.log?.length ? { log: game.log } : {}),
+      ...(mode === 'live' ? { startedAt: game.start } : game.startedAt ? { startedAt: game.startedAt } : {}),
     };
     e.target.disabled = true;
     try {
@@ -932,6 +1002,7 @@ function renderStats(){
       <div class="split"><i style="width:${t ? h.w / t * 100 : 50}%"></i></div>
       <span class="wl"><span class="w">${h.w}승</span> <span class="l">${h.l}패</span></span></div>`; }).join('') : '<div class="muted">기록 없음</div>'}
   </div>
+  ${renderDamaStats(games)}
   <div class="section-title"><h2>상세</h2><span>열 제목을 눌러 정렬</span></div>
   <div class="card"><div class="tablewrap"><table>
     <tr><th>이름</th>${th('games','게임')}${th('wins','1등')}${th('rate','1등률')}${th('avgRank','평균순위')}${th('last','꼴찌')}${th('paid','낸 돈')}${th('done','소화율')}${th('firstAvg','1등 평균시간')}</tr>
@@ -940,6 +1011,44 @@ function renderStats(){
   </table></div>
   <div class="muted" style="margin-top:10px;font-size:12px">팀전 게임비는 꼴찌팀 인원수로 나눠서 계산 · 소화율 = 친 다마 / 목표 다마</div></div>`
   : `<div class="card"><div class="empty"><span class="big">📊</span>해당 기간 기록이 없어요</div></div>`}`;
+}
+
+function renderDamaStats(games){
+  const kind = statFilter.kind === '3구' ? '3구' : '4구';
+  const solo = games.filter(g => g.mode !== '팀전' && g.kind === kind);
+  if (!solo.length) return '';
+  const table = paceTable();
+  // 선수별 다마 변화
+  const D = {};
+  solo.forEach(g => { const r = ranksOf(g), n = g.sides.length; g.sides.forEach((s, i) => { const m = s.members[0];
+    (D[m.id] ??= { id: m.id, name: pname(m.id) || m.name, list: [] }).list.push({ dama: s.dama, rank: r[i], n, last: i === g.payer }); }); });
+  const rowsD = Object.values(D).map(d => {
+    const pl = state.players.find(p => p.id === d.id);
+    const cur = pl ? (kind === '3구' ? pl.dama3 : pl.dama4) : null;
+    const seq = d.list.map(x => x.dama).slice(-6);
+    const trend = seq.map((v, k) => k && v !== seq[k-1] ? `<span class="${v > seq[k-1] ? 'up' : 'down'}">${v}</span>` : `${v}`).join(' → ');
+    const avgD = d.list.reduce((a, x) => a + x.dama, 0) / d.list.length;
+    const pace = table.P[d.id] ? table.P[d.id].s / table.P[d.id].t / 2 : null;
+    return { ...d, cur, trend, avgD, pace, games: d.list.length, rate: d.list.filter(x => x.rank === 1).length / d.list.length };
+  }).sort((a, b) => (b.cur ?? 0) - (a.cur ?? 0));
+  // 다마 구간별 성적
+  const B = {};
+  solo.forEach(g => { const r = ranksOf(g), n = g.sides.length; g.sides.forEach((s, i) => {
+    const lo = Math.floor(s.dama / 50) * 50; const b = B[lo] ??= { lo, games: 0, win: 0, last: 0, score: 0 };
+    b.games++; if (r[i] === 1) b.win++; if (i === g.payer) b.last++; b.score += n > 1 ? (n - r[i]) / (n - 1) : 0; }); });
+  const buckets = Object.values(B).sort((a, b) => a.lo - b.lo);
+  return `
+  <div class="section-title"><h2>다마 · 득점 속도</h2><span>${kind} 개인전 기준</span></div>
+  <div class="card"><div class="tablewrap"><table>
+    <tr><th>이름</th><th>현재 다마</th><th>평균 다마</th><th>1등률</th><th>분당 득점</th><th>최근 다마 변화</th></tr>
+    ${rowsD.map(d => `<tr><td><b>${esc(d.name)}</b></td><td>${d.cur ?? '-'}</td><td>${Math.round(d.avgD)}</td><td>${pctS(d.rate)}</td><td>${d.pace != null ? d.pace.toFixed(1) : '-'}</td><td class="trend">${d.trend}</td></tr>`).join('')}
+  </table></div>
+  <div class="muted" style="margin-top:10px;font-size:12px">최근 다마 변화: 빨강 = 올림, 초록 = 내림 · 분당 득점 = 1:1 기준으로 환산한 속도 (전체 게임 기준)</div></div>
+  <div class="section-title"><h2>다마 구간별 성적</h2><span>시작 다마 50 단위</span></div>
+  <div class="card"><div class="tablewrap"><table>
+    <tr><th>시작 다마</th><th>게임</th><th>1등률</th><th>꼴찌율</th><th>순위점수</th></tr>
+    ${buckets.map(b => `<tr><td><b>${b.lo}~${b.lo + 49}</b></td><td>${b.games}</td><td>${pctS(b.win / b.games)}</td><td>${pctS(b.last / b.games)}</td><td>${Math.round(b.score / b.games * 100)}</td></tr>`).join('')}
+  </table></div></div>`;
 }
 
 // ───────── 선수 ─────────
@@ -1048,6 +1157,7 @@ $('#app').addEventListener('change', async e => {
   if (d.dama) setup.dama[d.dama] = Number(e.target.value);
   if (d.tdama) setup.teamDama[d.tdama] = Number(e.target.value);
   if (e.target.id === 'fee') setup.fee = Math.round((Number(e.target.value) || 0) * 1000);   // 이번 게임에만 적용, 기본은 항상 10(천원)
+  if (d.dama || d.tdama || d.cush) setTimeout(updateSetupWp, 0);
   if (d.cush) { ui.cushion = Math.max(0, Number(e.target.value) || 0); e.target.value = ui.cushion; saveUi(); }
   if (d.p4) await store.updatePlayer(d.p4, { dama4: Number(e.target.value) || 0 });
   if (d.p3) await store.updatePlayer(d.p3, { dama3: Number(e.target.value) || 0 });
