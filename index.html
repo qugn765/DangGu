@@ -388,7 +388,8 @@ async function makeFirebaseStore(cfg, room){
 
 // ───────── 화면 상태 ─────────
 let tab = 'play';
-const ui = lsGet('danggu-ui', { kind: '4구', mode: '개인전', fee: 12000 });
+const ui = lsGet('danggu-ui', { kind: '4구', mode: '개인전', fee: 10000 });
+if (!ui.feeK) { ui.fee = 10000; ui.feeK = true; }   // 게임비 입력은 천원 단위 (저장은 원 단위)
 let setup = { picked: {}, dama: {}, teamDama: {A: '', B: ''} };   // picked: id -> true | 'A' | 'B'
 let live = null;
 let statFilter = { kind: '전체', period: '전체', sort: 'rate', h2h: '' };
@@ -471,7 +472,7 @@ function renderSetup(){
   </div>` : ''}
   <div class="card">
     <span class="label">게임비 · 꼴찌가 전액</span>
-    <div class="row"><input id="fee" class="grow num" type="number" inputmode="numeric" step="1000" value="${ui.fee}" style="text-align:left;font-weight:700"><span class="muted">원</span></div>
+    <div class="row"><input id="fee" class="grow num" type="number" inputmode="decimal" step="1" value="${ui.fee / 1000}" style="text-align:left;font-weight:700"><span class="muted">천원</span></div>
     <div class="presets">${[10000,12000,15000,20000].map(v => `<button data-fee="${v}">${v/10000}만</button>`).join('')}</div>
   </div>
   <div class="actions">
@@ -673,7 +674,7 @@ function openResult(game, mode){
       ${evHtml}
       <div class="grid2" style="margin-top:16px">
         <label class="f">💸 게임비 내는 사람<select id="rPay">${order.map(i => `<option value="${i}" ${i===payer?'selected':''}>${sideLabel(S[i])} (${ranks[i]}등)</option>`).join('')}</select></label>
-        <label class="f">게임비<input id="rFee" type="number" inputmode="numeric" step="1000" value="${fee}" style="width:100%"></label>
+        <label class="f">게임비 (천원)<input id="rFee" type="number" inputmode="decimal" step="1" value="${fee / 1000}" style="width:100%"></label>
       </div>
       <div class="grid2" style="margin-top:10px">
         <label class="f">시작 시각<input id="rStart" type="datetime-local" value="${start}"></label>
@@ -718,7 +719,7 @@ function openResult(game, mode){
       if (evMode && ranks[i] === n - 1 && ranks[j] === n) { applyEv(); const el = root.querySelector('.final-left'); if (el) el.textContent = fmtLeft(S[j], S[j].remaining); }
     }
     if (e.target.id === 'rPay') { touchedPay = true; payer = Number(v); }
-    if (e.target.id === 'rFee') fee = Number(v) || 0;
+    if (e.target.id === 'rFee') fee = Math.round((Number(v) || 0) * 1000);
     if (e.target.id === 'rStart') start = v;
     if (e.target.id === 'rDur') dur = v;
     if (d.rank !== undefined) draw();
@@ -961,10 +962,10 @@ $('#app').addEventListener('click', async e => {
     inp.value = Math.max(0, (Number(inp.value) || 0) + Number(d.step));
     inp.dispatchEvent(new Event('change', {bubbles: true}));
   }
-  if (d.fee) { $('#fee').value = d.fee; ui.fee = Number(d.fee); saveUi(); }
+  if (d.fee) { $('#fee').value = d.fee / 1000; ui.fee = Number(d.fee); saveUi(); }
   if (t.id === 'startBtn' || t.id === 'manualBtn') {
     const sides = buildSides(); if (!sides) return;
-    ui.fee = Number($('#fee').value) || 0; saveUi();
+    ui.fee = Math.round((Number($('#fee').value) || 0) * 1000); saveUi();
     const game = { kind: ui.kind, mode: ui.mode, sides, start: new Date().toISOString(), fee: ui.fee, events: [] };
     if (t.id === 'startBtn') { live = game; pushLive(); render(); }
     else openResult(game, 'manual');
@@ -1010,7 +1011,7 @@ $('#app').addEventListener('change', async e => {
   const d = e.target.dataset;
   if (d.dama) setup.dama[d.dama] = Number(e.target.value);
   if (d.tdama) setup.teamDama[d.tdama] = Number(e.target.value);
-  if (e.target.id === 'fee') { ui.fee = Number(e.target.value) || 0; saveUi(); }
+  if (e.target.id === 'fee') { ui.fee = Math.round((Number(e.target.value) || 0) * 1000); saveUi(); }
   if (d.cush) { ui.cushion = Math.max(0, Number(e.target.value) || 0); e.target.value = ui.cushion; saveUi(); }
   if (d.p4) await store.updatePlayer(d.p4, { dama4: Number(e.target.value) || 0 });
   if (d.p3) await store.updatePlayer(d.p3, { dama3: Number(e.target.value) || 0 });
