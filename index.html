@@ -114,6 +114,9 @@ label.f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:60
 .stepper button{width:36px;height:40px;border:0;background:none;color:var(--text-2);font-size:18px;cursor:pointer}
 .stepper input{border:0;background:none;width:60px;padding:8px 0;font-weight:700}
 .presets{display:flex;gap:6px;margin-top:8px}
+.pill,.fee-btn{white-space:nowrap;flex:none}
+.game-head .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fee-btn{border:1px solid var(--border-2);background:var(--surface-2);color:var(--text);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;cursor:pointer;margin-left:-2px}
 .presets button{flex:1;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:9px;padding:7px 0;font-size:12px;font-weight:600;cursor:pointer}
 
 /* buttons */
@@ -400,6 +403,9 @@ const activePlayers = () => state.players.filter(p => !p.archived).sort((a,b) =>
 const pname = id => state.players.find(p => p.id === id)?.name;
 const defDama = (p, kind) => kind === '3구' ? (p.dama3 ?? 20) : (p.dama4 ?? 150);
 const saveUi = () => lsSet('danggu-ui', ui);
+const DEFAULT_FEE = 10000;   // 게임비 기본 1만원 (입력은 천원 단위)
+const FEE_PRESETS = [10000, 12000, 15000, 20000];
+const feePresets = attr => `<div class="presets">${FEE_PRESETS.map(v => `<button ${attr}="${v}">${v / 1000}</button>`).join('')}</div>`;
 const pushLive = () => store.setLive(live).catch(e => toast('동기화 실패: ' + (e.code || e.message)));
 
 async function keepAwake(on){
@@ -446,7 +452,7 @@ function renderSetup(){
     } else {
       rows = ['A','B'].map(t => {
         const mem = ps.filter(p => setup.picked[p.id] === t);
-        const def = mem.length ? Math.round(mem.reduce((s,p) => s + defDama(p, ui.kind), 0) / mem.length) : '';
+        const def = mem.length ? mem.reduce((s,p) => s + defDama(p, ui.kind), 0) : '';   // 팀 다마 = 팀원 다마 합
         return `<div class="picked"><span class="team-badge ${t}">${t}</span>
           <div class="grow">${mem.length ? avGroup(mem.map(p => ({name: p.name})), 'sm') + ' <span class="muted">' + mem.map(p => esc(p.name)).join(', ') + '</span>' : '<span class="muted">선수를 선택하세요</span>'}</div>
           ${stepper(`data-tdama="${t}"`, setup.teamDama[t] !== '' ? setup.teamDama[t] : def, step)}</div>`;
@@ -470,11 +476,6 @@ function renderSetup(){
     <span class="label">마무리 3쿠션 · 다마를 다 빼고 나서 칠 3쿠션 개수 (1개 = 10점)</span>
     <div class="row"><b class="grow">3쿠션</b>${stepper('data-cush="1"', ui.cushion ?? 2, 1)}<span class="muted">개</span></div>
   </div>` : ''}
-  <div class="card">
-    <span class="label">게임비 · 꼴찌가 전액</span>
-    <div class="row"><input id="fee" class="grow num" type="number" inputmode="decimal" step="1" value="${(setup.fee ?? 10000) / 1000}" style="text-align:left;font-weight:700"><span class="muted">천원</span></div>
-    <div class="presets">${[10000,12000,15000,20000].map(v => `<button data-fee="${v}">${v/10000}만</button>`).join('')}</div>
-  </div>
   <div class="actions">
     <button class="btn pri grow" id="startBtn">게임 시작</button>
     <button class="btn ghost" id="manualBtn">결과만 입력</button>
@@ -630,7 +631,7 @@ function openResult(game, mode){
   S.forEach((s, i) => { if (s.finishMin != null && evMin[i] == null) evMin[i] = s.finishMin; });
   let dur = mode === 'edit' ? game.durationMin : mode === 'live' ? elapsedMin(game.start) : '';
   let start = localInput(new Date(mode === 'edit' ? game.date : game.start));
-  let fee = game.fee;
+  let fee = game.fee ?? DEFAULT_FEE;
 
   const root = $('#modalRoot');
   // 3명 이상: 순위 + 진행 기록(끝난 시간, 그때 남은 다마)만 입력 → 위쪽 남은 다마 칸은 숨기고 자동 계산
@@ -674,7 +675,7 @@ function openResult(game, mode){
       ${evHtml}
       <div class="grid2" style="margin-top:16px">
         <label class="f">💸 게임비 내는 사람<select id="rPay">${order.map(i => `<option value="${i}" ${i===payer?'selected':''}>${sideLabel(S[i])} (${ranks[i]}등)</option>`).join('')}</select></label>
-        <label class="f">게임비 (천원)<input id="rFee" type="number" inputmode="decimal" step="1" value="${fee / 1000}" style="width:100%"></label>
+        <label class="f">게임비 (천원)<input id="rFee" type="number" inputmode="decimal" step="1" value="${fee / 1000}" style="width:100%">${feePresets('data-mfee')}</label>
       </div>
       <div class="grid2" style="margin-top:10px">
         <label class="f">시작 시각<input id="rStart" type="datetime-local" value="${start}"></label>
@@ -735,6 +736,7 @@ function openResult(game, mode){
   };
   root.onclick = async e => {
     if (e.target.id === 'rCancel' || e.target.id === 'mbg') { root.innerHTML = ''; return; }
+    if (e.target.dataset.mfee) { fee = Number(e.target.dataset.mfee); $('#rFee').value = fee / 1000; return; }
     if (e.target.id !== 'rSave') return;
     // 포커스 중인 입력값 반영
     document.activeElement?.dispatchEvent?.(new Event('change', {bubbles: true}));
@@ -781,6 +783,33 @@ function openResult(game, mode){
   };
 }
 
+// 게임비만 빠르게 수정
+function openFeeEdit(g){
+  const root = $('#modalRoot');
+  root.innerHTML = `<div class="modal" id="mbg"><div class="sheet">
+    <div class="handle"></div>
+    <h3>게임비</h3>
+    <div class="muted" style="margin-bottom:12px">${fmtDate(g.date)} · ${g.kind} ${g.mode} · ${sideLabel(g.sides[g.payer])} 부담</div>
+    <div class="row"><input id="qFee" class="grow num" type="number" inputmode="decimal" step="1" value="${(g.fee ?? DEFAULT_FEE) / 1000}" style="font-weight:700;font-size:18px"><span class="muted">천원</span></div>
+    ${feePresets('data-qfee')}
+    <div class="actions" style="margin-top:16px"><button class="btn ghost" id="qCancel">닫기</button><button class="btn pri grow" id="qSave">저장</button></div>
+  </div></div>`;
+  root.onchange = null;
+  root.onclick = async e => {
+    const t = e.target;
+    if (t.id === 'qCancel' || t.id === 'mbg') { root.innerHTML = ''; return; }
+    if (t.dataset.qfee) { $('#qFee').value = Number(t.dataset.qfee) / 1000; return; }
+    if (t.id === 'qSave') {
+      const fee = Math.round((Number($('#qFee').value) || 0) * 1000);
+      const { id, ...rest } = g;
+      t.disabled = true;
+      try { await store.updateGame(id, { ...rest, fee }); root.innerHTML = ''; toast('게임비 수정했어요'); render(); }
+      catch (err) { t.disabled = false; toast('저장 실패: ' + (err.code || err.message)); }
+    }
+  };
+  setTimeout(() => $('#qFee')?.select(), 50);
+}
+
 // ───────── 기록 ─────────
 function renderHistory(){
   const games = [...state.games].sort((a,b) => b.date.localeCompare(a.date));
@@ -807,8 +836,8 @@ function renderHistory(){
     }).join('')}</div>` : '';
     return head + `<div class="game">
       <div class="game-head"><span class="pill felt">${g.kind}</span>${g.mode === '팀전' ? '<span class="pill">팀전</span>' : n > 2 ? `<span class="pill">${n}명</span>` : ''}
-        <span class="meta num">${fmtTime(g.date)} · ${fmtMin(g.durationMin)} · ${won(g.fee)}</span>
-        <span class="grow"></span>
+        <span class="meta num">${fmtTime(g.date)} · ${fmtMin(g.durationMin)}</span>
+        <span class="grow"></span><button class="fee-btn num" data-feeedit="${g.id}">${won(g.fee)} ✎</button>
         <button class="icon-btn" data-editgame="${g.id}" aria-label="수정">${ICON_EDIT}</button>
         <button class="icon-btn" data-delgame="${g.id}" aria-label="삭제">${ICON_TRASH}</button></div>
       ${sides}${timeline}</div>`;
@@ -965,8 +994,7 @@ $('#app').addEventListener('click', async e => {
   if (d.fee) { $('#fee').value = d.fee / 1000; setup.fee = Number(d.fee); }
   if (t.id === 'startBtn' || t.id === 'manualBtn') {
     const sides = buildSides(); if (!sides) return;
-    ui.fee = Math.round((Number($('#fee').value) || 0) * 1000);
-    const game = { kind: ui.kind, mode: ui.mode, sides, start: new Date().toISOString(), fee: ui.fee, events: [] };
+    const game = { kind: ui.kind, mode: ui.mode, sides, start: new Date().toISOString(), fee: DEFAULT_FEE, events: [] };
     if (t.id === 'startBtn') { live = game; pushLive(); render(); }
     else openResult(game, 'manual');
   }
@@ -977,6 +1005,7 @@ $('#app').addEventListener('click', async e => {
   if (t.id === 'finishBtn') openResult(live, 'live');
   if (t.id === 'cancelLive' && confirm('진행 중인 게임을 취소할까요? (기록되지 않아요)')) { live = null; await store.setLive(null); render(); }
   // 기록
+  if (d.feeedit) { const g = state.games.find(x => x.id === d.feeedit); if (g) openFeeEdit(g); }
   if (d.editgame) { const g = state.games.find(x => x.id === d.editgame); if (g) openResult(g, 'edit'); }
   if (d.delgame && confirm('이 게임 기록을 삭제할까요?')) { await store.deleteGame(d.delgame); toast('삭제했어요'); }
   // 통계
