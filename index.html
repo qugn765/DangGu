@@ -4,103 +4,262 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>당구 기록</title>
-<meta name="theme-color" content="#0f3d2e">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23e8e8e8'/><circle cx='50' cy='50' r='18' fill='%23c0392b'/></svg>">
+<meta name="theme-color" content="#0b0d0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23f5f5f4'/><circle cx='50' cy='50' r='20' fill='%23ef4444'/></svg>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 :root{
-  --bg:#0b2a20; --felt:#0f3d2e; --card:#14503c; --card2:#185c45; --line:#2a6b55;
-  --text:#eef5f1; --muted:#9cc2b2; --accent:#f2c14e; --red:#e2554a; --white:#f4f4f4; --ok:#5fd18b;
-  --radius:14px;
+  --bg:#0b0d0c;
+  --surface:#141816;
+  --surface-2:#1b201e;
+  --surface-3:#232a27;
+  --border:rgba(255,255,255,.07);
+  --border-2:rgba(255,255,255,.12);
+  --text:#f3f5f4;
+  --text-2:#b9c2be;
+  --muted:#7d8884;
+  --felt:#1f9d63;
+  --felt-2:#2dd483;
+  --felt-soft:rgba(45,212,131,.12);
+  --gold:#f5c451;
+  --gold-soft:rgba(245,196,81,.14);
+  --red:#f0564a;
+  --red-soft:rgba(240,86,74,.14);
+  --blue:#5b8cff;
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;-webkit-tap-highlight-color:transparent}
-body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
-header{position:sticky;top:0;z-index:5;background:var(--felt);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px}
-header h1{font-size:18px;margin:0;flex:1;display:flex;align-items:center;gap:8px}
-.ball{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#bbb);display:inline-block}
-.ball.r{background:radial-gradient(circle at 35% 35%,#ff8a80,#b71c1c)}
-.mode{font-size:11px;padding:3px 8px;border-radius:99px;background:#0006;color:var(--muted)}
-.mode.on{color:var(--ok)}
-main{max-width:720px;margin:0 auto;padding:14px 16px}
-nav{position:fixed;bottom:0;left:0;right:0;z-index:5;background:var(--felt);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;background:none;border:0;color:var(--muted);padding:10px 0 12px;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
-nav button span{font-size:20px}
-nav button.on{color:var(--accent)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
-.card h2{font-size:15px;margin:0 0 10px;color:var(--muted);font-weight:600}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.grow{flex:1}
-.seg{display:flex;background:#0005;border-radius:10px;padding:3px;gap:3px}
-.seg button{flex:1;border:0;background:none;color:var(--muted);padding:8px 10px;border-radius:8px;font-size:14px;cursor:pointer}
-.seg button.on{background:var(--card2);color:var(--text);font-weight:700}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:1px solid var(--line);background:#0003;color:var(--text);padding:8px 12px;border-radius:99px;font-size:14px;cursor:pointer}
-.chip.on{background:var(--accent);color:#222;border-color:var(--accent);font-weight:700}
-.chip.A{background:#3b82f6;border-color:#3b82f6;color:#fff;font-weight:700}
-.chip.B{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
-input,select{background:#0005;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 10px;font-size:15px;min-width:0}
-input[type=number]{width:84px;text-align:center}
-label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
-.btn{border:0;border-radius:12px;padding:12px 14px;font-size:15px;font-weight:700;cursor:pointer;background:var(--card2);color:var(--text)}
-.btn.pri{background:var(--accent);color:#222}
-.btn.red{background:var(--red);color:#fff}
-.btn.ghost{background:none;border:1px solid var(--line)}
-.btn.sm{padding:7px 10px;font-size:13px;border-radius:9px}
-.btn:disabled{opacity:.4}
-.full{width:100%}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{
+  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+  padding-bottom:calc(96px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(900px 420px at 50% -180px, rgba(31,157,99,.22), transparent 70%),
+    var(--bg);
+  background-attachment:fixed;
+  letter-spacing:-.01em;
+}
+button{font-family:inherit;letter-spacing:inherit}
+.num{font-variant-numeric:tabular-nums}
+
+/* header */
+header{max-width:720px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 20px 6px;display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,#1f9d63,#0f5e3a);display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}
+.logo svg{width:24px;height:24px}
+header h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.03em;flex:1}
+header h1 small{display:block;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-top:1px}
+.status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:6px 10px;border-radius:99px}
+.status i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.status.on i{background:var(--felt-2);box-shadow:0 0 0 3px rgba(45,212,131,.18)}
+main{max-width:720px;margin:0 auto;padding:12px 16px}
+
+/* nav */
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:10;
+  display:flex;gap:4px;padding:6px;border-radius:22px;background:rgba(20,24,22,.78);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border:1px solid var(--border-2);box-shadow:var(--shadow);width:min(420px,calc(100% - 32px))}
+nav button{flex:1;border:0;background:none;color:var(--muted);padding:9px 0 7px;border-radius:16px;font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:background .2s,color .2s}
+nav button svg{width:22px;height:22px}
+nav button.on{background:var(--surface-3);color:var(--text)}
+nav button.on svg{color:var(--felt-2)}
+
+/* section */
+.section-title{display:flex;align-items:baseline;justify-content:space-between;margin:18px 4px 10px}
+.section-title h2{margin:0;font-size:15px;font-weight:700;color:var(--text-2)}
+.section-title span{font-size:12px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:12px}
+.row{display:flex;gap:10px;align-items:center}
+.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
 .muted{color:var(--muted);font-size:13px}
-.list-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
-.list-item:last-child{border-bottom:0}
-.empty{text-align:center;color:var(--muted);padding:30px 0}
+.label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;display:block}
+.empty{text-align:center;color:var(--muted);padding:36px 12px;font-size:14px;line-height:1.6}
+.empty .big{font-size:36px;display:block;margin-bottom:6px;opacity:.6}
+
+/* segmented */
+.seg{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:none;color:var(--muted);padding:9px 8px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.seg button.on{background:var(--surface-3);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+
+/* avatar & chips */
+.av{--h:150;width:30px;height:30px;border-radius:50%;flex:none;display:inline-grid;place-items:center;font-size:13px;font-weight:700;color:#fff;
+  background:linear-gradient(145deg,hsl(var(--h) 60% 52%),hsl(var(--h) 55% 36%));box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+.av.lg{width:40px;height:40px;font-size:16px}
+.av.sm{width:22px;height:22px;font-size:10px}
+.avs{display:inline-flex}
+.avs .av+.av{margin-left:-8px;box-shadow:0 0 0 2px var(--surface)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border-2);background:var(--surface-2);color:var(--text-2);padding:5px 12px 5px 5px;border-radius:99px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.chip .av{width:26px;height:26px;font-size:12px}
+.chip.on{border-color:var(--felt-2);background:var(--felt-soft);color:var(--text)}
+.chip.A{border-color:var(--blue);background:rgba(91,140,255,.14);color:var(--text)}
+.chip.B{border-color:var(--red);background:var(--red-soft);color:var(--text)}
+.team-badge{font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;color:#fff}
+.team-badge.A{background:var(--blue)} .team-badge.B{background:var(--red)}
+
+/* inputs */
+input,select{font-family:inherit;background:var(--bg);border:1px solid var(--border-2);color:var(--text);border-radius:var(--r-sm);padding:10px 12px;font-size:15px;min-width:0;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--felt-2)}
+input[type=number]{width:84px;text-align:center;font-variant-numeric:tabular-nums}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.picked{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border)}
+.picked:first-child{border-top:0}
+.picked b{font-weight:700}
+.stepper{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:12px;overflow:hidden}
+.stepper button{width:36px;height:40px;border:0;background:none;color:var(--text-2);font-size:18px;cursor:pointer}
+.stepper input{border:0;background:none;width:60px;padding:8px 0;font-weight:700}
+.presets{display:flex;gap:6px;margin-top:8px}
+.presets button{flex:1;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:9px;padding:7px 0;font-size:12px;font-weight:600;cursor:pointer}
+
+/* buttons */
+.btn{border:0;border-radius:var(--r-md);padding:15px 16px;font-size:15px;font-weight:700;cursor:pointer;background:var(--surface-3);color:var(--text);display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s,opacity .15s}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:linear-gradient(180deg,#2dd483,#1fae6b);color:#05220f;box-shadow:0 6px 20px rgba(45,212,131,.25)}
+.btn.ghost{background:transparent;border:1px solid var(--border-2);color:var(--text-2)}
+.btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+.btn:disabled{opacity:.4}
+.icon-btn{width:34px;height:34px;border-radius:10px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.icon-btn:hover{background:var(--surface-2);color:var(--text)}
+.icon-btn svg{width:17px;height:17px}
+.actions{display:flex;gap:10px;margin-top:4px}
+
 /* live */
-.timer{font-size:48px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:1px;margin:4px 0 2px}
-.side{background:var(--card2);border-radius:12px;padding:12px;margin-top:10px}
-.side.win{outline:2px solid var(--accent)}
-.side .names{font-weight:700;font-size:16px}
-.side .big{font-size:40px;font-weight:800;min-width:70px;text-align:center;font-variant-numeric:tabular-nums}
-.pm{width:56px;height:56px;border-radius:50%;border:0;font-size:28px;font-weight:800;cursor:pointer}
-.pm.minus{background:var(--accent);color:#222}
-.pm.plus{background:#0005;color:var(--text)}
-.bar{height:6px;border-radius:3px;background:#0005;overflow:hidden;margin-top:8px}
-.bar i{display:block;height:100%;background:var(--ok)}
-/* record */
-.game{padding:12px 0;border-bottom:1px solid var(--line)}
-.game:last-child{border-bottom:0}
-.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:6px;background:#0005;color:var(--muted);margin-right:4px}
-.tag.win{background:var(--accent);color:#222;font-weight:700}
-.tag.pay{background:var(--red);color:#fff;font-weight:700}
-.gside{display:flex;justify-content:space-between;font-size:14px;padding:3px 0}
+.live-head{text-align:center;padding:22px 16px 18px;background:linear-gradient(180deg,rgba(31,157,99,.16),rgba(31,157,99,.02));border:1px solid rgba(45,212,131,.18)}
+.live-meta{display:flex;justify-content:center;gap:6px;margin-bottom:6px}
+.pill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;background:var(--surface-3);color:var(--text-2)}
+.pill.felt{background:var(--felt-soft);color:var(--felt-2)}
+.pill.rec::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:5px;vertical-align:1px;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.timer{font-size:56px;font-weight:800;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
+.score{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;margin-bottom:10px;transition:border-color .2s}
+.score.done{border-color:var(--gold);background:linear-gradient(90deg,var(--gold-soft),var(--surface) 60%)}
+.score .who{flex:1;min-width:0}
+.score .who b{display:block;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:6px}
+.score .who .sub{font-size:12px;color:var(--muted)}
+.ring{--p:0;width:78px;height:78px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(var(--felt-2) calc(var(--p)*1%), var(--surface-3) 0)}
+.score.done .ring{background:conic-gradient(var(--gold) 100%,transparent 0)}
+.ring>div{width:66px;height:66px;border-radius:50%;background:var(--surface);display:grid;place-items:center;align-content:center}
+.ring b{font-size:24px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.ring small{font-size:10px;color:var(--muted);margin-top:2px}
+.hit{width:58px;height:58px;border-radius:18px;border:0;background:linear-gradient(180deg,#2dd483,#1fae6b);color:#05220f;font-size:30px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(45,212,131,.25);flex:none}
+.hit:active{transform:scale(.94)}
+.undo{width:34px;height:34px;border-radius:10px;border:1px solid var(--border-2);background:none;color:var(--muted);font-size:16px;cursor:pointer;flex:none}
+
+/* history */
+.day{font-size:13px;font-weight:700;color:var(--muted);margin:20px 4px 8px}
+.game{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 14px 10px;margin-bottom:10px}
+.game-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.game-head .meta{font-size:12px;color:var(--muted);margin-left:4px}
+.gs{display:flex;align-items:center;gap:10px;padding:7px 0}
+.gs .name{flex:1;min-width:0;font-size:14px;font-weight:600}
+.gs .name small{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
+.gs .rem{font-size:13px;color:var(--muted);text-align:right;white-space:nowrap}
+.gs .rem b{color:var(--text);font-size:15px}
+.mini{height:4px;border-radius:2px;background:var(--surface-3);margin-top:5px;overflow:hidden}
+.mini i{display:block;height:100%;background:var(--felt-2);border-radius:2px}
+.gs.win .mini i{background:var(--gold)}
+.badge{font-size:10px;font-weight:800;padding:2px 6px;border-radius:5px;margin-left:5px;vertical-align:1px}
+.badge.win{background:var(--gold-soft);color:var(--gold)}
+.badge.pay{background:var(--red-soft);color:var(--red)}
+
 /* stats */
-.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
-@media(min-width:560px){.kpis{grid-template-columns:repeat(4,1fr)}}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.kpi b{display:block;font-size:20px;margin-top:2px}
-.kpi small{color:var(--muted);font-size:12px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:8px 4px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.filters{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:6px}
+@media(min-width:600px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px}
+.kpi small{color:var(--muted);font-size:12px;font-weight:600}
+.kpi b{display:block;font-size:22px;font-weight:800;margin-top:4px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.lb{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border)}
+.lb:first-child{border-top:0;padding-top:4px}
+.rank{width:22px;text-align:center;font-weight:800;font-size:15px;color:var(--muted)}
+.rank.r1{color:var(--gold)} .rank.r2{color:#cfd6d3} .rank.r3{color:#d39a6a}
+.lb .info{flex:1;min-width:0}
+.lb .info b{font-size:15px}
+.lb .info small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.lb .bar{height:5px;border-radius:3px;background:var(--surface-3);margin-top:7px;overflow:hidden}
+.lb .bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--felt),var(--felt-2))}
+.lb .rate{text-align:right}
+.lb .rate b{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.lb .rate small{display:block;font-size:11px;color:var(--red);margin-top:2px;font-weight:600}
+.tablewrap{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:10px 6px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
 th:first-child,td:first-child{text-align:left}
-th{color:var(--muted);font-weight:600;cursor:pointer}
-.tablewrap{overflow-x:auto}
-.rate{display:inline-block;height:6px;border-radius:3px;background:var(--accent);vertical-align:middle;margin-left:4px}
+tr:last-child td{border-bottom:0}
+th{color:var(--muted);font-weight:600;font-size:12px;cursor:pointer;user-select:none}
+th.on{color:var(--felt-2)}
+
+/* players */
+.pl{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border)}
+.pl:first-child{border-top:0;padding-top:2px}
+.pl.arch{opacity:.4}
+.pl .info{flex:1;min-width:0}
+.pl .info b{font-size:15px}
+.pl .info small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.pl input[type=number]{width:62px;padding:8px 4px;font-size:14px}
+.add-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px auto;gap:8px;align-items:end}
+.add-row input{width:100%}
+.add-row .btn{white-space:nowrap}
+
 /* modal */
-.modal{position:fixed;inset:0;background:#000a;z-index:20;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--felt);width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
-.sheet h3{margin:0 0 12px}
-.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;z-index:30}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.sheet{background:var(--surface);border:1px solid var(--border-2);border-bottom:0;width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:10px 18px calc(20px + env(safe-area-inset-bottom));animation:up .25s cubic-bezier(.2,.8,.2,1)}
+.sheet .handle{width:40px;height:4px;border-radius:2px;background:var(--border-2);margin:0 auto 14px}
+.sheet h3{margin:0 0 4px;font-size:19px;font-weight:800}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:10px}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+@keyframes fade{from{opacity:0}}
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(243,245,244,.95);color:#111;padding:11px 18px;border-radius:99px;font-size:14px;font-weight:600;z-index:30;box-shadow:var(--shadow);animation:fade .2s;white-space:nowrap}
 .hidden{display:none!important}
+/* v2 additions */
+.rk{display:inline-grid;place-items:center;min-width:34px;height:24px;padding:0 7px;border-radius:7px;font-size:12px;font-weight:800;background:var(--surface-3);color:var(--text-2);flex:none}
+.rk.r1{background:var(--gold-soft);color:var(--gold)}
+.rk.last{background:var(--red-soft);color:var(--red)}
+.score.fin{opacity:.92;border-color:rgba(245,196,81,.35);background:linear-gradient(90deg,var(--gold-soft),var(--surface) 65%)}
+.score.fin .ring{background:conic-gradient(var(--gold) 100%,transparent 0)}
+.score.fin .hit{background:var(--surface-3);color:var(--muted);box-shadow:none}
+.fin-note{font-size:12px;color:var(--gold);font-weight:700;margin-top:2px}
+.ev{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md);padding:12px;margin-top:8px}
+.ev-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:14px;font-weight:700}
+.ev-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;color:var(--text-2)}
+.ev-row input{width:72px;padding:7px 4px;font-size:14px}
+.sel-sm{padding:7px 6px;font-size:13px;font-weight:700;border-radius:8px;width:62px}
+.timeline{margin-top:6px;padding-top:8px;border-top:1px dashed var(--border-2)}
+.tl{display:flex;gap:8px;font-size:12px;color:var(--muted);padding:3px 0;line-height:1.5}
+.tl b{color:var(--text-2);font-weight:700}
+.tl .t{flex:none;width:42px;color:var(--felt-2);font-weight:700;font-variant-numeric:tabular-nums}
+.dots{display:inline-flex;gap:3px;margin-left:6px;vertical-align:1px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--surface-3)}
+.dots i.w{background:var(--gold)} .dots i.l{background:var(--red)} .dots i.m{background:#5d6964}
+.h2h{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--border)}
+.h2h:first-of-type{border-top:0}
+.h2h .vs{flex:1;min-width:0;font-weight:600;font-size:14px}
+.h2h .wl{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.h2h .wl .w{color:var(--felt-2)} .h2h .wl .l{color:var(--red)}
+.h2h .split{width:90px;height:6px;border-radius:3px;background:var(--red-soft);overflow:hidden}
+.h2h .split i{display:block;height:100%;background:var(--felt-2)}
+.watch{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
 </style>
 </head>
 <body>
 <header>
-  <h1><i class="ball"></i><i class="ball r"></i> 당구 기록</h1>
-  <span id="modeTag" class="mode">연결 중…</span>
+  <div class="logo"><svg viewBox="0 0 24 24"><circle cx="9" cy="10" r="5" fill="#f5f5f4"/><circle cx="16" cy="15" r="4.2" fill="#ef4444"/></svg></div>
+  <h1>당구 기록<small id="subtitle">친구들 다마 · 승률 · 정산</small></h1>
+  <span id="modeTag" class="status"><i></i><span>연결 중</span></span>
 </header>
 <main id="app"></main>
 <nav id="nav">
-  <button data-tab="play" class="on"><span>🎱</span>게임</button>
-  <button data-tab="history"><span>📋</span>기록</button>
-  <button data-tab="stats"><span>📊</span>통계</button>
-  <button data-tab="players"><span>👥</span>선수</button>
+  <button data-tab="play" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>게임</button>
+  <button data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="3.5" width="16" height="17" rx="3"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg>기록</button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>통계</button>
+  <button data-tab="players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.8-3.3 3.4-5 6.5-5s5.7 1.7 6.5 5"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14.3c2.3.2 3.9 1.6 4.5 4"/></svg>선수</button>
 </nav>
 <div id="modalRoot"></div>
 
@@ -114,10 +273,42 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 const pad = n => String(n).padStart(2, '0');
-const fmtDate = iso => { const d = new Date(iso); return `${d.getMonth()+1}/${d.getDate()}(${'일월화수목금토'[d.getDay()]}) ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtTime = iso => { const d = new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtDate = iso => { const d = new Date(iso); return `${d.getMonth()+1}/${d.getDate()}(${'일월화수목금토'[d.getDay()]}) ${fmtTime(iso)}`; };
 const fmtMin = m => m >= 60 ? `${Math.floor(m/60)}시간 ${Math.round(m%60)}분` : `${Math.round(m)}분`;
 const localInput = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-function toast(msg){ const t = document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 1800); }
+const elapsedMin = start => Math.max(1, Math.round((Date.now() - new Date(start)) / 60000));
+const numOrNull = v => v === '' || v == null || isNaN(Number(v)) ? null : Number(v);
+function toast(msg){ document.querySelectorAll('.toast').forEach(t => t.remove()); const t = document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 1900); }
+
+// 이름 → 아바타
+const HUES = [152, 205, 262, 330, 22, 45, 180, 290, 0, 95];
+const hue = name => { let h = 0; for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return HUES[h % HUES.length]; };
+const initial = name => { const n = String(name || '?').trim(); return /^[가-힣]{3}$/.test(n) ? n.slice(1, 2) : n.slice(0, 1).toUpperCase(); };
+const av = (name, cls = '') => `<span class="av ${cls}" style="--h:${hue(name)}">${esc(initial(name))}</span>`;
+const avGroup = (members, cls = '') => `<span class="avs">${members.map(m => av(m.name, cls)).join('')}</span>`;
+const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/></svg>`;
+const ICON_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>`;
+
+// ───────── 순위 계산 ─────────
+const ratio = s => s.dama ? s.remaining / s.dama : 1;
+// 저장된 게임의 순위 배열 (예전 기록은 승자/꼴찌/남은 비율로 추정)
+function ranksOf(g){
+  if (g.sides.every(s => s.rank)) return g.sides.map(s => s.rank);
+  const idx = g.sides.map((_, i) => i);
+  const mid = idx.filter(i => i !== g.winner && i !== g.payer).sort((a, b) => ratio(g.sides[a]) - ratio(g.sides[b]));
+  const order = [g.winner, ...mid, g.payer].filter((v, i, a) => v != null && a.indexOf(v) === i);
+  const r = []; order.forEach((si, k) => r[si] = k + 1); return r;
+}
+// 다 친 사람은 끝난 시간 순, 못 친 사람은 남은 다마 비율 순
+function autoRanks(sides){
+  const idx = sides.map((_, i) => i);
+  const fin = idx.filter(i => sides[i].remaining <= 0).sort((a, b) => (sides[a].finishMin ?? 1e9) - (sides[b].finishMin ?? 1e9));
+  const rest = idx.filter(i => sides[i].remaining > 0).sort((a, b) => ratio(sides[a]) - ratio(sides[b]));
+  const r = []; [...fin, ...rest].forEach((si, k) => r[si] = k + 1); return r;
+}
+const sideLabel = s => s.team ? `${s.team}팀` : esc(s.members[0].name);
+const sideNames = s => s.members.map(m => esc(m.name)).join(', ');
 
 // ───────── 저장소 (Firebase 또는 로컬) ─────────
 const state = { players: [], games: [] };
@@ -131,10 +322,13 @@ function makeLocalStore(){
   return {
     online: false,
     subscribe(cb){ listener = cb; load(); cb(); },
+    subscribeLive(cb){ cb(lsGet('danggu-live', null)); },
+    async setLive(v){ lsSet('danggu-live', v); },
     async addPlayer(p){ state.players.push({id: uid(), ...p}); save(); },
     async updatePlayer(id, p){ Object.assign(state.players.find(x => x.id === id), p); save(); },
     async deletePlayer(id){ state.players = state.players.filter(x => x.id !== id); save(); },
     async addGame(g){ state.games.push({id: uid(), ...g}); save(); },
+    async updateGame(id, g){ const i = state.games.findIndex(x => x.id === id); state.games[i] = {id, ...g}; save(); },
     async deleteGame(id){ state.games = state.games.filter(x => x.id !== id); save(); },
   };
 }
@@ -146,16 +340,21 @@ async function makeFirebaseStore(cfg, room){
   const db = fs.getFirestore(initializeApp(cfg));
   const pc = fs.collection(db, 'rooms', room, 'players');
   const gc = fs.collection(db, 'rooms', room, 'games');
+  const liveDoc = fs.doc(db, 'rooms', room, 'meta', 'live');
   return {
     online: true,
     subscribe(cb){
       fs.onSnapshot(pc, s => { state.players = s.docs.map(d => ({id: d.id, ...d.data()})); cb(); }, e => toast('불러오기 실패: ' + e.code));
       fs.onSnapshot(gc, s => { state.games = s.docs.map(d => ({id: d.id, ...d.data()})); cb(); }, e => toast('불러오기 실패: ' + e.code));
     },
+    // 진행 중인 게임도 공유 → 친구 폰에서도 실시간으로 보고 같이 셀 수 있음
+    subscribeLive(cb){ fs.onSnapshot(liveDoc, s => { const j = s.exists() ? s.data().json : null; cb(j ? JSON.parse(j) : null); }); },
+    setLive: v => fs.setDoc(liveDoc, { json: v ? JSON.stringify(v) : null, at: new Date().toISOString() }),
     addPlayer: p => fs.addDoc(pc, p),
     updatePlayer: (id, p) => fs.updateDoc(fs.doc(pc, id), p),
     deletePlayer: id => fs.deleteDoc(fs.doc(pc, id)),
     addGame: g => fs.addDoc(gc, g),
+    updateGame: (id, g) => fs.setDoc(fs.doc(gc, id), g),
     deleteGame: id => fs.deleteDoc(fs.doc(gc, id)),
   };
 }
@@ -164,15 +363,24 @@ async function makeFirebaseStore(cfg, room){
 let tab = 'play';
 const ui = lsGet('danggu-ui', { kind: '4구', mode: '개인전', fee: 12000 });
 let setup = { picked: {}, dama: {}, teamDama: {A: '', B: ''} };   // picked: id -> true | 'A' | 'B'
-let live = lsGet('danggu-live', null);
-let statFilter = { kind: '전체', period: '전체', sort: 'rate' };
+let live = null;
+let statFilter = { kind: '전체', period: '전체', sort: 'rate', h2h: '' };
 let timerHandle = null;
+let wakeLock = null;
 
 const activePlayers = () => state.players.filter(p => !p.archived).sort((a,b) => a.name.localeCompare(b.name, 'ko'));
 const pname = id => state.players.find(p => p.id === id)?.name;
 const defDama = (p, kind) => kind === '3구' ? (p.dama3 ?? 20) : (p.dama4 ?? 150);
 const saveUi = () => lsSet('danggu-ui', ui);
-const saveLive = () => lsSet('danggu-live', live);
+const pushLive = () => store.setLive(live).catch(e => toast('동기화 실패: ' + (e.code || e.message)));
+
+async function keepAwake(on){
+  try {
+    if (on && !wakeLock && 'wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => wakeLock = null); }
+    if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && live) keepAwake(true); });
 
 function render(){
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
@@ -183,62 +391,61 @@ function render(){
   if (tab === 'stats') app.innerHTML = renderStats();
   if (tab === 'players') app.innerHTML = renderPlayers();
   if (tab === 'play' && live) { tick(); timerHandle = setInterval(tick, 1000); }
+  keepAwake(!!live);
 }
 
 // ───────── 게임 세팅 ─────────
+const stepper = (attr, val, step) => `<div class="stepper"><button data-step="${-step}">−</button><input type="number" inputmode="numeric" ${attr} value="${val}"><button data-step="${step}">+</button></div>`;
+
 function renderSetup(){
   const ps = activePlayers();
   const team = ui.mode === '팀전';
+  const step = ui.kind === '3구' ? 1 : 10;
   let body = '';
   if (!ps.length) {
-    body = `<div class="empty">먼저 <b>선수</b> 탭에서 친구들을 등록하세요</div>`;
+    body = `<div class="empty"><span class="big">🎱</span>먼저 <b>선수</b> 탭에서 친구들을 등록하세요</div>`;
   } else {
     const chips = ps.map(p => {
       const v = setup.picked[p.id];
       const cls = team ? (v || '') : (v ? 'on' : '');
-      return `<button class="chip ${cls}" data-pick="${p.id}">${esc(p.name)}${team && v ? ' · ' + v : ''}</button>`;
+      return `<button class="chip ${cls}" data-pick="${p.id}">${av(p.name)}${esc(p.name)}${team && v ? ` <span class="team-badge ${v}">${v}</span>` : ''}</button>`;
     }).join('');
     let rows = '';
     if (!team) {
       const sel = ps.filter(p => setup.picked[p.id]);
-      rows = sel.map(p => `
-        <div class="list-item"><div class="grow"><b>${esc(p.name)}</b></div>
-          <span class="muted">다마</span>
-          <input type="number" inputmode="numeric" data-dama="${p.id}" value="${setup.dama[p.id] ?? defDama(p, ui.kind)}">
-        </div>`).join('');
+      rows = sel.map(p => `<div class="picked">${av(p.name)}<b class="grow">${esc(p.name)}</b>
+        ${stepper(`data-dama="${p.id}"`, setup.dama[p.id] ?? defDama(p, ui.kind), step)}</div>`).join('');
     } else {
       rows = ['A','B'].map(t => {
         const mem = ps.filter(p => setup.picked[p.id] === t);
         const def = mem.length ? Math.round(mem.reduce((s,p) => s + defDama(p, ui.kind), 0) / mem.length) : '';
-        return `<div class="list-item"><div class="grow"><span class="chip ${t}" style="padding:3px 9px">${t}팀</span>
-          ${mem.map(p => esc(p.name)).join(', ') || '<span class="muted">선수 선택</span>'}</div>
-          <span class="muted">다마</span>
-          <input type="number" inputmode="numeric" data-tdama="${t}" value="${setup.teamDama[t] !== '' ? setup.teamDama[t] : def}">
-        </div>`;
+        return `<div class="picked"><span class="team-badge ${t}">${t}</span>
+          <div class="grow">${mem.length ? avGroup(mem.map(p => ({name: p.name})), 'sm') + ' <span class="muted">' + mem.map(p => esc(p.name)).join(', ') + '</span>' : '<span class="muted">선수를 선택하세요</span>'}</div>
+          ${stepper(`data-tdama="${t}"`, setup.teamDama[t] !== '' ? setup.teamDama[t] : def, step)}</div>`;
       }).join('');
     }
     body = `
-      <div class="muted" style="margin-bottom:8px">${team ? '탭할 때마다 A팀 → B팀 → 해제' : '참가자를 선택하세요'}</div>
+      <span class="label">${team ? '참가자 · 탭할 때마다 A → B → 해제' : '참가자 · 3명 이상이면 1등·2등·꼴찌까지 순서대로 기록'}</span>
       <div class="chips">${chips}</div>
-      <div style="margin-top:10px">${rows}</div>`;
+      ${rows ? `<div style="margin-top:14px"><span class="label">${team ? '팀 다마' : '다마'}</span>${rows}</div>` : ''}`;
   }
   return `
+  <div class="section-title"><h2>새 게임</h2><span>${new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'})}</span></div>
   <div class="card">
-    <h2>새 게임</h2>
-    <div class="row" style="margin-bottom:10px">
+    <div class="row" style="margin-bottom:16px">
       <div class="seg grow">${['4구','3구'].map(k => `<button data-kind="${k}" class="${ui.kind===k?'on':''}">${k}</button>`).join('')}</div>
       <div class="seg grow">${['개인전','팀전'].map(k => `<button data-mode="${k}" class="${ui.mode===k?'on':''}">${k}</button>`).join('')}</div>
     </div>
     ${body}
   </div>
   <div class="card">
-    <div class="row">
-      <label class="f grow">게임비 (꼴찌가 전액)<input id="fee" type="number" inputmode="numeric" step="1000" value="${ui.fee}" style="width:100%;text-align:left"></label>
-    </div>
+    <span class="label">게임비 · 꼴찌가 전액</span>
+    <div class="row"><input id="fee" class="grow num" type="number" inputmode="numeric" step="1000" value="${ui.fee}" style="text-align:left;font-weight:700"><span class="muted">원</span></div>
+    <div class="presets">${[10000,12000,15000,20000].map(v => `<button data-fee="${v}">${v/10000}만</button>`).join('')}</div>
   </div>
-  <div class="row">
-    <button class="btn pri grow" id="startBtn">⏱ 게임 시작</button>
-    <button class="btn ghost grow" id="manualBtn">결과 바로 입력</button>
+  <div class="actions">
+    <button class="btn pri grow" id="startBtn">게임 시작</button>
+    <button class="btn ghost" id="manualBtn">결과만 입력</button>
   </div>`;
 }
 
@@ -247,8 +454,7 @@ function buildSides(){
   if (ui.mode === '팀전') {
     const sides = ['A','B'].map(t => {
       const mem = ps.filter(p => setup.picked[p.id] === t);
-      const inp = $(`[data-tdama="${t}"]`);
-      const dama = Number(inp?.value) || 0;
+      const dama = Number($(`[data-tdama="${t}"]`)?.value) || 0;
       return { team: t, members: mem.map(p => ({id: p.id, name: p.name})), dama, remaining: dama };
     });
     if (sides.some(s => !s.members.length)) return toast('A팀, B팀 모두 선수를 넣어주세요');
@@ -263,134 +469,259 @@ function buildSides(){
 }
 
 // ───────── 진행 중 게임 ─────────
-const sideName = s => s.team ? `${s.team}팀 · ${s.members.map(m => esc(m.name)).join(', ')}` : esc(s.members[0].name);
-
 function renderLive(){
-  const sides = live.sides.map((s, i) => {
+  const n = live.sides.length;
+  const order = live.sides.map((_, i) => i).sort((a, b) => (live.sides[a].rank || 99) - (live.sides[b].rank || 99) || a - b);
+  const sides = order.map(i => {
+    const s = live.sides[i];
     const pct = s.dama ? Math.max(0, Math.min(100, (s.dama - s.remaining) / s.dama * 100)) : 0;
-    return `<div class="side ${s.remaining <= 0 ? 'win' : ''}">
-      <div class="row"><div class="grow"><div class="names">${sideName(s)}</div><div class="muted">다마 ${s.dama}</div></div>
-        <button class="pm plus" data-plus="${i}">+</button>
-        <div class="big">${s.remaining}</div>
-        <button class="pm minus" data-minus="${i}">−</button>
+    const fin = s.rank && s.remaining <= 0;
+    return `<div class="score ${fin ? 'fin' : ''}">
+      <div class="who">
+        ${s.rank ? `<span class="rk ${s.rank===1?'r1':''} ${s.rank===n?'last':''}">${s.rank}등</span> ` : ''}${s.team ? `<span class="team-badge ${s.team}">${s.team}</span> ` : ''}${avGroup(s.members, s.team ? 'sm' : '')}
+        <b>${sideNames(s)}</b>
+        ${fin ? `<div class="fin-note">${s.finishMin}분에 끝</div>` : `<span class="sub num">${s.dama - s.remaining} / ${s.dama}</span>`}
       </div>
-      <div class="bar"><i style="width:${pct}%"></i></div>
+      <button class="undo" data-plus="${i}" aria-label="되돌리기">↺</button>
+      <div class="ring" style="--p:${pct}"><div><b>${s.remaining}</b><small>남음</small></div></div>
+      <button class="hit" data-minus="${i}" ${fin ? 'disabled' : ''} aria-label="한 개 침">−</button>
     </div>`;
   }).join('');
-  return `<div class="card">
-    <div class="row"><span class="tag">${live.kind}</span><span class="tag">${live.mode}</span><span class="grow"></span><span class="muted">시작 ${fmtDate(live.start)}</span></div>
+  const left = live.sides.filter(s => s.remaining > 0).length;
+  return `
+  <div class="card live-head">
+    <div class="live-meta"><span class="pill rec">진행 중</span><span class="pill felt">${live.kind} ${live.mode}${n > 2 ? ` · ${n}명` : ''}</span></div>
     <div class="timer" id="timer">00:00</div>
-    <div class="muted" style="text-align:center">남은 다마 · 칠 때마다 − 를 누르세요</div>
-    ${sides}
+    <div class="muted">${fmtDate(live.start)} 시작 · ${n > 2 && left < n ? `${n - left}명 끝 · ${left}명 남음` : '칠 때마다 − 를 누르세요'}</div>
   </div>
-  <div class="row">
-    <button class="btn pri grow" id="finishBtn">🏁 게임 종료</button>
+  ${sides}
+  <div class="actions">
+    <button class="btn pri grow" id="finishBtn">${left <= 1 ? '결과 저장' : '여기서 종료'}</button>
     <button class="btn ghost" id="cancelLive">취소</button>
-  </div>`;
+  </div>
+  ${store.online ? '<div class="watch">친구 폰에서도 이 화면이 실시간으로 보여요</div>' : ''}`;
 }
 function tick(){
   const el = $('#timer'); if (!el || !live) return;
-  const sec = Math.floor((Date.now() - new Date(live.start)) / 1000);
+  const sec = Math.max(0, Math.floor((Date.now() - new Date(live.start)) / 1000));
   const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
   el.textContent = (h ? h + ':' + pad(m) : pad(m)) + ':' + pad(s);
 }
 
-// ───────── 결과 입력 모달 ─────────
-function autoWinner(sides){ let w = 0; sides.forEach((s,i) => { if (s.remaining < sides[w].remaining) w = i; }); return w; }
-function autoPayer(sides, winner){
-  if (sides.length === 2) return winner === 0 ? 1 : 0;
-  // 개인전: 남은 다마 비율이 가장 큰 사람(꼴찌)
-  let p = winner === 0 ? 1 : 0;
-  sides.forEach((s,i) => { if (i !== winner && s.remaining / s.dama > sides[p].remaining / sides[p].dama) p = i; });
-  return p;
+function liveHit(i){
+  const s = live.sides[i];
+  if (s.remaining <= 0) return;
+  s.remaining--;
+  if (navigator.vibrate) navigator.vibrate(15);
+  if (s.remaining === 0) {
+    const n = live.sides.length;
+    s.finishMin = elapsedMin(live.start);
+    s.rank = live.sides.filter(x => x.rank && x.remaining <= 0).length + 1;
+    // 이 순간 남아있던 사람들의 다마 스냅샷
+    live.events = (live.events || []).filter(e => e.side !== i);
+    live.events.push({ side: i, min: s.finishMin, rem: live.sides.map(x => x.remaining > 0 ? x.remaining : null) });
+    const left = live.sides.map((x, j) => j).filter(j => live.sides[j].remaining > 0);
+    if (left.length === 1) {
+      live.sides[left[0]].rank = n;
+      pushLive(); render();
+      toast(`${sideLabel(s)} ${s.rank}등! 게임 끝`);
+      setTimeout(() => openResult(live, 'live'), 350);
+      return;
+    }
+    toast(`${sideLabel(s)} ${s.rank}등! (${s.finishMin}분)`);
+  }
+  pushLive(); render();
+}
+function liveUndo(i){
+  const s = live.sides[i];
+  if (s.remaining >= s.dama) return;
+  const wasFin = s.remaining <= 0;
+  s.remaining++;
+  if (wasFin) {
+    delete s.rank; delete s.finishMin;
+    live.events = (live.events || []).filter(e => e.side !== i);
+  }
+  // 남은 사람에게 자동으로 붙었던 꼴찌 순위 해제 + 끝난 사람들 순위 재정렬
+  live.sides.forEach(x => { if (x.remaining > 0) delete x.rank; });
+  live.sides.map((x, j) => j).filter(j => live.sides[j].remaining <= 0)
+    .sort((a, b) => live.sides[a].finishMin - live.sides[b].finishMin)
+    .forEach((j, k) => live.sides[j].rank = k + 1);
+  pushLive(); render();
 }
 
-function openResult(game, manual){
-  // game: {kind, mode, sides, start, fee}
-  const sides = game.sides.map(s => ({...s}));
-  let winner = autoWinner(sides), payer = autoPayer(sides, winner);
-  let touchedW = false, touchedP = false;
-  const durAuto = manual ? '' : Math.max(1, Math.round((Date.now() - new Date(game.start)) / 60000));
+// ───────── 결과 입력 / 수정 모달 ─────────
+// mode: 'live' | 'manual' | 'edit'
+function openResult(game, mode){
+  const n = game.sides.length;
+  const multi = n >= 3;
+  const S = game.sides.map(s => ({...s}));
+  let ranks = mode === 'edit' ? ranksOf(game) : (S.every(s => s.rank) ? S.map(s => s.rank) : autoRanks(S));
+  let touchedRank = mode === 'edit';
+  let payer = mode === 'edit' ? game.payer : ranks.indexOf(n);
+  let touchedPay = mode === 'edit';
+  // 종료 시점 기록: evMin[i] = i가 끝난 시간(분), evRem[i][j] = i가 끝났을 때 j의 남은 다마
+  const evMin = {}, evRem = {};
+  (game.events || []).forEach(e => { evMin[e.side] = e.min; evRem[e.side] = [...(e.rem || [])]; });
+  S.forEach((s, i) => { if (s.finishMin != null && evMin[i] == null) evMin[i] = s.finishMin; });
+  let dur = mode === 'edit' ? game.durationMin : mode === 'live' ? elapsedMin(game.start) : '';
+  let start = localInput(new Date(mode === 'edit' ? game.date : game.start));
+  let fee = game.fee;
+
   const root = $('#modalRoot');
+  const finishedOrder = () => S.map((_, i) => i).filter(i => S[i].remaining <= 0).sort((a, b) => ranks[a] - ranks[b]);
+
   const draw = () => {
+    const order = S.map((_, i) => i).sort((a, b) => ranks[a] - ranks[b]);
+    const rankSel = i => `<select class="sel-sm" data-rank="${i}">${Array.from({length: n}, (_, k) => `<option value="${k+1}" ${ranks[i]===k+1?'selected':''}>${k+1}등</option>`).join('')}</select>`;
+    const fins = finishedOrder();
+    const evHtml = multi && fins.length ? `
+      <span class="label" style="margin-top:18px">진행 기록 · 누가 몇 분에 끝났고, 그때 나머지는 몇 개 남았는지</span>
+      ${fins.map(i => {
+        const after = order.filter(j => ranks[j] > ranks[i]);
+        return `<div class="ev">
+          <div class="ev-head"><span class="rk ${ranks[i]===1?'r1':''}">${ranks[i]}등</span>${sideLabel(S[i])} 끝
+            <span class="grow"></span><input type="number" inputmode="numeric" data-evmin="${i}" value="${evMin[i] ?? ''}" placeholder="분" style="width:64px;padding:7px 4px"><span class="muted">분</span></div>
+          ${after.map(j => `<div class="ev-row">${av(S[j].members[0].name, 'sm')}<span class="grow">${sideLabel(S[j])} 남은 다마</span>
+            <input type="number" inputmode="numeric" data-evrem="${i}:${j}" value="${evRem[i]?.[j] ?? ''}" placeholder="-"></div>`).join('')}
+        </div>`;
+      }).join('')}` : '';
     root.innerHTML = `<div class="modal" id="mbg"><div class="sheet">
-      <h3>${manual ? '결과 입력' : '게임 종료'}</h3>
-      ${sides.map((s,i) => `<div class="list-item">
-        <div class="grow"><b>${sideName(s)}</b><div class="muted">다마 ${s.dama}</div></div>
-        <span class="muted">남은</span><input type="number" inputmode="numeric" data-rem="${i}" value="${s.remaining}">
-      </div>`).join('')}
-      <div class="row" style="margin-top:12px">
-        <label class="f grow">승자<select id="rWin">${sides.map((s,i) => `<option value="${i}" ${i===winner?'selected':''}>${s.team ? s.team+'팀' : esc(s.members[0].name)}</option>`).join('')}</select></label>
-        <label class="f grow">꼴찌 (게임비 냄)<select id="rPay">${sides.map((s,i) => `<option value="${i}" ${i===payer?'selected':''}>${s.team ? s.team+'팀' : esc(s.members[0].name)}</option>`).join('')}</select></label>
+      <div class="handle"></div>
+      <h3>${mode === 'edit' ? '기록 수정' : mode === 'manual' ? '결과 입력' : '게임 종료'}</h3>
+      <div class="muted" style="margin-bottom:12px">${game.kind} ${game.mode}${multi ? ` · ${n}명` : ''} · 순위와 최종 남은 다마를 확인하세요</div>
+      ${order.map(i => { const s = S[i]; return `<div class="picked">
+        ${rankSel(i)}
+        ${s.team ? `<span class="team-badge ${s.team}">${s.team}</span>` : ''}${avGroup(s.members, s.team ? 'sm' : '')}
+        <div class="grow"><b>${sideNames(s)}</b><div class="muted">다마 ${s.dama}</div></div>
+        <input type="number" inputmode="numeric" data-rem="${i}" value="${s.remaining}" style="font-weight:700;width:72px">
+      </div>`; }).join('')}
+      ${evHtml}
+      <div class="grid2" style="margin-top:16px">
+        <label class="f">💸 게임비 내는 사람<select id="rPay">${order.map(i => `<option value="${i}" ${i===payer?'selected':''}>${sideLabel(S[i])} (${ranks[i]}등)</option>`).join('')}</select></label>
+        <label class="f">게임비<input id="rFee" type="number" inputmode="numeric" step="1000" value="${fee}" style="width:100%"></label>
       </div>
-      <div class="row" style="margin-top:10px">
-        <label class="f grow">시작 시각<input id="rStart" type="datetime-local" value="${localInput(new Date(game.start))}"></label>
-        <label class="f">소요(분)<input id="rDur" type="number" inputmode="numeric" value="${durAuto}" placeholder="분"></label>
-        <label class="f">게임비<input id="rFee" type="number" inputmode="numeric" step="1000" value="${game.fee}" style="width:96px"></label>
+      <div class="grid2" style="margin-top:10px">
+        <label class="f">시작 시각<input id="rStart" type="datetime-local" value="${start}"></label>
+        <label class="f">총 소요(분)<input id="rDur" type="number" inputmode="numeric" value="${dur}" placeholder="분" style="width:100%"></label>
       </div>
-      <div class="row" style="margin-top:16px">
-        <button class="btn ghost" id="rCancel">닫기</button>
+      <div class="actions" style="margin-top:18px">
+        <button class="btn ghost" id="rCancel">${mode === 'live' ? '계속하기' : '닫기'}</button>
         <button class="btn pri grow" id="rSave">저장</button>
       </div>
     </div></div>`;
   };
   draw();
-  root.oninput = e => {
-    const r = e.target.dataset.rem;
-    if (r !== undefined) {
-      sides[r].remaining = Math.max(0, Number(e.target.value) || 0);
-      if (!touchedW) { winner = autoWinner(sides); $('#rWin').value = winner; }
-      if (!touchedP) { payer = autoPayer(sides, winner); $('#rPay').value = payer; }
-    }
-  };
+  let lastFinKey = S.map(s => s.remaining <= 0 ? 1 : 0).join('');
+
   root.onchange = e => {
-    if (e.target.id === 'rWin') { touchedW = true; winner = Number(e.target.value); if (!touchedP) { payer = autoPayer(sides, winner); $('#rPay').value = payer; } }
-    if (e.target.id === 'rPay') { touchedP = true; payer = Number(e.target.value); }
+    const d = e.target.dataset, v = e.target.value;
+    if (d.rem !== undefined) {
+      S[d.rem].remaining = Math.max(0, Number(v) || 0);
+      if (!touchedRank) ranks = autoRanks(S.map((s, i) => ({...s, finishMin: evMin[i]})));
+      if (!touchedPay) payer = ranks.indexOf(n);
+    }
+    if (d.rank !== undefined) {
+      touchedRank = true;
+      const i = Number(d.rank), nr = Number(v), j = ranks.indexOf(nr);
+      if (j >= 0 && j !== i) ranks[j] = ranks[i];   // 순위 맞바꾸기
+      ranks[i] = nr;
+      if (!touchedPay) payer = ranks.indexOf(n);
+    }
+    if (d.evmin !== undefined) evMin[d.evmin] = numOrNull(v);
+    if (d.evrem !== undefined) { const [i, j] = d.evrem.split(':').map(Number); (evRem[i] ??= [])[j] = numOrNull(v); }
+    if (e.target.id === 'rPay') { touchedPay = true; payer = Number(v); }
+    if (e.target.id === 'rFee') fee = Number(v) || 0;
+    if (e.target.id === 'rStart') start = v;
+    if (e.target.id === 'rDur') dur = v;
+    if (d.rank !== undefined) draw();
+    if (d.rem !== undefined) {
+      // 끝난 사람 구성이 바뀌면 다시 그리고, 아니면 값만 갱신 (바로 저장 버튼을 눌러도 클릭이 씹히지 않게)
+      const finKey = S.map(s => s.remaining <= 0 ? 1 : 0).join('');
+      if (finKey !== lastFinKey) { lastFinKey = finKey; draw(); }
+      else {
+        S.forEach((_, i) => { const el = root.querySelector(`[data-rank="${i}"]`); if (el) el.value = ranks[i]; });
+        const ps = $('#rPay'); if (ps) { [...ps.options].forEach(o => o.textContent = `${sideLabel(S[o.value])} (${ranks[o.value]}등)`); ps.value = payer; }
+      }
+    }
   };
   root.onclick = async e => {
     if (e.target.id === 'rCancel' || e.target.id === 'mbg') { root.innerHTML = ''; return; }
-    if (e.target.id === 'rSave') {
-      const dur = Number($('#rDur').value);
-      if (!dur || dur <= 0) return toast('소요 시간(분)을 입력하세요');
-      if (winner === payer) return toast('승자와 꼴찌가 같아요');
-      const rec = {
-        kind: game.kind, mode: game.mode,
-        date: new Date($('#rStart').value).toISOString(),
-        durationMin: dur, fee: Number($('#rFee').value) || 0,
-        sides, winner, payer, createdAt: new Date().toISOString(),
-      };
-      e.target.disabled = true;
-      try {
-        await store.addGame(rec);
-        root.innerHTML = '';
-        if (!manual) { live = null; saveLive(); }
-        setup.picked = {}; setup.dama = {}; setup.teamDama = {A:'', B:''};
-        toast('저장했어요');
-        tab = 'history'; render();
-      } catch (err) { e.target.disabled = false; toast('저장 실패: ' + (err.code || err.message)); }
-    }
+    if (e.target.id !== 'rSave') return;
+    // 포커스 중인 입력값 반영
+    document.activeElement?.dispatchEvent?.(new Event('change', {bubbles: true}));
+    const D = Number(dur);
+    if (!D || D <= 0) return toast('총 소요 시간(분)을 입력하세요');
+    if (new Set(ranks).size !== n) return toast('순위가 겹쳐요');
+    const winner = ranks.indexOf(1);
+    if (winner === payer) return toast('1등이 게임비를 낼 수는 없어요');
+    const fins = finishedOrder();
+    const events = fins.map(i => ({
+      side: i,
+      min: evMin[i] ?? (ranks[i] === Math.max(...fins.map(f => ranks[f])) ? D : null),
+      rem: S.map((_, j) => ranks[j] > ranks[i] ? (evRem[i]?.[j] ?? null) : null),
+    }));
+    // 마지막으로 끝난 사람 시점의 남은 다마 = 최종 남은 다마
+    const lastFin = fins[fins.length - 1];
+    if (lastFin != null) events.find(ev => ev.side === lastFin).rem = S.map((s, j) => ranks[j] > ranks[lastFin] ? (evRem[lastFin]?.[j] ?? s.remaining) : null);
+    if (n === 2 && fins.length && events[0].min == null) events[0].min = D;
+    const sides = S.map((s, i) => {
+      const o = { members: s.members, dama: s.dama, remaining: s.remaining, rank: ranks[i] };
+      if (s.team) o.team = s.team;
+      const ev = events.find(x => x.side === i); o.finishMin = ev ? ev.min : null;
+      return o;
+    });
+    const rec = {
+      kind: game.kind, mode: game.mode,
+      date: new Date(start).toISOString(),
+      durationMin: D, fee: Number(fee) || 0,
+      sides, winner, payer, events,
+      createdAt: game.createdAt || new Date().toISOString(),
+    };
+    e.target.disabled = true;
+    try {
+      if (mode === 'edit') await store.updateGame(game.id, rec); else await store.addGame(rec);
+      root.innerHTML = '';
+      if (mode === 'live') { live = null; await store.setLive(null); }
+      if (mode !== 'edit') { setup.picked = {}; setup.dama = {}; setup.teamDama = {A:'', B:''}; tab = 'history'; }
+      toast(mode === 'edit' ? '수정했어요' : '저장했어요');
+      render();
+    } catch (err) { e.target.disabled = false; toast('저장 실패: ' + (err.code || err.message)); }
   };
 }
 
 // ───────── 기록 ─────────
 function renderHistory(){
   const games = [...state.games].sort((a,b) => b.date.localeCompare(a.date));
-  if (!games.length) return `<div class="card"><div class="empty">아직 기록이 없어요</div></div>`;
+  if (!games.length) return `<div class="section-title"><h2>기록</h2></div><div class="card"><div class="empty"><span class="big">📋</span>아직 기록이 없어요</div></div>`;
   let lastDay = '';
   const items = games.map(g => {
     const day = new Date(g.date).toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'short'});
-    const head = day !== lastDay ? `<div class="muted" style="margin:14px 0 4px;font-weight:700">${day}</div>` : '';
+    const head = day !== lastDay ? `<div class="day">${day}</div>` : '';
     lastDay = day;
-    const sides = g.sides.map((s,i) => `<div class="gside">
-      <span>${i===g.winner?'<span class="tag win">승</span>':''}${i===g.payer?'<span class="tag pay">꼴찌</span>':''}${sideName(s)}</span>
-      <span class="muted">${s.dama - s.remaining}/${s.dama} · 남은 <b style="color:var(--text)">${s.remaining}</b></span></div>`).join('');
+    const r = ranksOf(g), n = g.sides.length;
+    const order = g.sides.map((_, i) => i).sort((a, b) => r[a] - r[b]);
+    const sides = order.map(i => { const s = g.sides[i]; const pct = s.dama ? (s.dama - s.remaining) / s.dama * 100 : 0;
+      return `<div class="gs ${r[i]===1?'win':''}">
+        <span class="rk ${r[i]===1?'r1':''} ${i===g.payer?'last':''}">${r[i]}등</span>
+        ${s.team ? avGroup(s.members, 'sm') : av(s.members[0].name)}
+        <div class="name">${s.team ? `<span class="team-badge ${s.team}">${s.team}</span> ` : ''}${sideNames(s)}${i===g.payer?'<span class="badge pay">게임비</span>':''}
+          <div class="mini"><i style="width:${pct}%"></i></div></div>
+        <div class="rem num">${s.remaining > 0 ? `<b>${s.remaining}</b> 남음` : `<b style="color:var(--gold)">${s.finishMin != null ? s.finishMin + '분' : '완료'}</b>`}<br><small class="muted">${s.dama - s.remaining}/${s.dama}</small></div>
+      </div>`; }).join('');
+    const evs = (g.events || []).filter(e => e.min != null || (e.rem || []).some(v => v != null)).sort((a, b) => (a.min ?? 1e9) - (b.min ?? 1e9));
+    const timeline = n > 2 && evs.length ? `<div class="timeline">${evs.map(e => {
+      const others = (e.rem || []).map((v, j) => v != null ? `${sideLabel(g.sides[j])} ${v}` : null).filter(Boolean);
+      return `<div class="tl"><span class="t">${e.min != null ? e.min + '분' : '-'}</span><span><b>${sideLabel(g.sides[e.side])} ${r[e.side]}등</b>${others.length ? ' · 남은 다마 ' + others.join(', ') : ''}</span></div>`;
+    }).join('')}</div>` : '';
     return head + `<div class="game">
-      <div class="row" style="margin-bottom:4px"><span class="tag">${g.kind}</span><span class="tag">${g.mode}</span>
-        <span class="muted">${fmtDate(g.date).split(' ')[1]} · ⏱ ${fmtMin(g.durationMin)} · ${won(g.fee)}</span>
-        <span class="grow"></span><button class="btn sm ghost" data-delgame="${g.id}">삭제</button></div>
-      ${sides}</div>`;
+      <div class="game-head"><span class="pill felt">${g.kind}</span>${g.mode === '팀전' ? '<span class="pill">팀전</span>' : n > 2 ? `<span class="pill">${n}명</span>` : ''}
+        <span class="meta num">${fmtTime(g.date)} · ${fmtMin(g.durationMin)} · ${won(g.fee)}</span>
+        <span class="grow"></span>
+        <button class="icon-btn" data-editgame="${g.id}" aria-label="수정">${ICON_EDIT}</button>
+        <button class="icon-btn" data-delgame="${g.id}" aria-label="삭제">${ICON_TRASH}</button></div>
+      ${sides}${timeline}</div>`;
   }).join('');
-  return `<div class="card"><h2>전체 ${games.length}게임</h2>${items}</div>`;
+  return `<div class="section-title"><h2>기록</h2><span>전체 ${games.length}게임</span></div>${items}`;
 }
 
 // ───────── 통계 ─────────
@@ -408,84 +739,117 @@ function filterGames(){
   });
 }
 function renderStats(){
-  const games = filterGames();
+  const games = filterGames().sort((a, b) => a.date.localeCompare(b.date));
   const P = {};
-  const get = (m) => P[m.id] ??= { id: m.id, name: pname(m.id) || m.name, games: 0, wins: 0, last: 0, paid: 0, min: 0, rem: 0, dama: 0 };
+  const get = (m) => P[m.id] ??= { id: m.id, name: pname(m.id) || m.name, games: 0, wins: 0, last: 0, paid: 0, rem: 0, dama: 0, rankSum: 0, score: 0, firstMins: [], recent: [] };
+  const H = {};   // 상대전적 H[a][b] = {w, l}
   let totalFee = 0, totalMin = 0;
   games.forEach(g => {
+    const r = ranksOf(g), n = g.sides.length;
     totalFee += g.fee || 0; totalMin += g.durationMin || 0;
     g.sides.forEach((s, i) => s.members.forEach(m => {
       const p = get(m);
-      p.games++; p.min += g.durationMin || 0; p.rem += s.remaining; p.dama += s.dama;
-      if (i === g.winner) p.wins++;
+      p.games++; p.rem += s.remaining; p.dama += s.dama; p.rankSum += r[i];
+      p.score += n > 1 ? (n - r[i]) / (n - 1) : 0;
+      if (r[i] === 1) { p.wins++; if (s.finishMin != null) p.firstMins.push(s.finishMin); }
       if (i === g.payer) { p.last++; p.paid += (g.fee || 0) / s.members.length; }
+      p.recent.push(r[i] === 1 ? 'w' : i === g.payer ? 'l' : 'm');
+      // 상대전적: 다른 편 사람들과 순위 비교
+      g.sides.forEach((s2, j) => { if (j === i) return; s2.members.forEach(m2 => {
+        const h = ((H[m.id] ??= {})[m2.id] ??= { w: 0, l: 0, name: m2.name });
+        if (r[i] < r[j]) h.w++; else if (r[i] > r[j]) h.l++;
+      }); });
     }));
   });
-  const rows = Object.values(P).map(p => ({...p, rate: p.games ? p.wins / p.games : 0, avgRem: p.games ? p.rem / p.games : 0, done: p.dama ? (p.dama - p.rem) / p.dama : 0 }));
+  const rows = Object.values(P).map(p => ({...p,
+    rate: p.games ? p.wins / p.games : 0, avgRank: p.games ? p.rankSum / p.games : 0, pscore: p.games ? p.score / p.games : 0,
+    done: p.dama ? (p.dama - p.rem) / p.dama : 0, firstAvg: p.firstMins.length ? p.firstMins.reduce((a,b)=>a+b,0) / p.firstMins.length : null }));
   const key = statFilter.sort;
-  rows.sort((a,b) => (b[key] - a[key]) || (b.games - a.games));
+  const val = (p, k) => k === 'avgRank' ? -p.avgRank : (p[k] ?? -1);
+  rows.sort((a,b) => (val(b, key) - val(a, key)) || (b.games - a.games));
+  const board = [...rows].sort((a,b) => (b.pscore - a.pscore) || (b.rate - a.rate) || (b.games - a.games));
   const durs = games.map(g => g.durationMin).filter(Boolean);
-  const th = (k, label) => `<th data-sort="${k}">${label}${key===k?' ▼':''}</th>`;
+  const th = (k, label) => `<th data-sort="${k}" class="${key===k?'on':''}">${label}</th>`;
   const seg = (name, opts) => `<div class="seg">${opts.map(o => `<button data-f="${name}" data-v="${o}" class="${statFilter[name]===o?'on':''}">${o}</button>`).join('')}</div>`;
+  const dots = p => `<span class="dots">${p.recent.slice(-5).map(x => `<i class="${x}"></i>`).join('')}</span>`;
+  const h2hId = P[statFilter.h2h] ? statFilter.h2h : board[0]?.id;
+  const h2hList = h2hId ? Object.entries(H[h2hId] || {}).map(([id, h]) => ({ id, ...h, name: pname(id) || h.name })).sort((a, b) => (b.w + b.l) - (a.w + a.l)) : [];
   return `
-  <div class="card">
+  <div class="section-title"><h2>통계</h2><span>${games.length}게임 기준</span></div>
+  <div class="filters">
     ${seg('kind', ['전체','4구','3구','팀전'])}
-    <div style="height:8px"></div>
     ${seg('period', ['전체','올해','이번달','최근30일'])}
   </div>
   <div class="kpis">
     <div class="kpi"><small>게임 수</small><b>${games.length}</b></div>
     <div class="kpi"><small>총 게임비</small><b>${won(totalFee)}</b></div>
     <div class="kpi"><small>평균 게임시간</small><b>${durs.length ? fmtMin(totalMin / durs.length) : '-'}</b></div>
-    <div class="kpi"><small>최단 / 최장</small><b>${durs.length ? `${Math.min(...durs)} / ${Math.max(...durs)}분` : '-'}</b></div>
+    <div class="kpi"><small>최단 / 최장</small><b>${durs.length ? `${Math.min(...durs)}<span class="muted">분</span> / ${Math.max(...durs)}<span class="muted">분</span>` : '-'}</b></div>
   </div>
+  ${rows.length ? `
+  <div class="section-title"><h2>순위</h2><span>순위점수 순 · 최근 5게임</span></div>
   <div class="card">
-    <h2>선수별</h2>
-    ${rows.length ? `<div class="tablewrap"><table>
-      <tr><th>이름</th>${th('games','게임')}${th('wins','승')}${th('rate','승률')}${th('last','꼴찌')}${th('paid','낸 돈')}${th('done','다마 소화율')}${th('avgRem','평균 남은')}</tr>
-      ${rows.map(p => `<tr><td><b>${esc(p.name)}</b></td><td>${p.games}</td><td>${p.wins}</td>
-        <td>${(p.rate*100).toFixed(0)}%<span class="rate" style="width:${Math.round(p.rate*30)}px"></span></td>
-        <td>${p.last}</td><td>${won(p.paid)}</td><td>${(p.done*100).toFixed(0)}%</td><td>${p.avgRem.toFixed(1)}</td></tr>`).join('')}
-    </table></div>
-    <div class="muted" style="margin-top:8px">팀전 게임비는 꼴찌팀 인원수로 나눠서 계산 · 열 제목을 누르면 정렬</div>`
-    : `<div class="empty">해당 기간 기록이 없어요</div>`}
-  </div>`;
+    ${board.map((p, i) => `<div class="lb">
+      <div class="rank r${i+1}">${i+1}</div>${av(p.name, 'lg')}
+      <div class="info"><b>${esc(p.name)}</b>${dots(p)}<small>${p.games}게임 · 1등 ${p.wins} · 꼴찌 ${p.last} · 평균 ${p.avgRank.toFixed(1)}등</small>
+        <div class="bar"><i style="width:${(p.pscore*100).toFixed(1)}%"></i></div></div>
+      <div class="rate"><b>${(p.rate*100).toFixed(0)}<span class="muted" style="font-size:13px">%</span></b><small>${p.paid ? '-' + won(p.paid) : ''}</small></div>
+    </div>`).join('')}
+    <div class="muted" style="margin-top:10px;font-size:12px">큰 숫자 = 1등 비율 · 막대 = 순위점수(1등 100, 꼴찌 0 — 3명 이상 게임에서 2등도 반영)</div>
+  </div>
+  <div class="section-title"><h2>상대 전적</h2><span>같은 게임에서 누가 더 높은 순위였나</span></div>
+  <div class="card">
+    <div class="chips" style="margin-bottom:10px">${board.map(p => `<button class="chip ${p.id===h2hId?'on':''}" data-h2h="${p.id}">${av(p.name)}${esc(p.name)}</button>`).join('')}</div>
+    ${h2hList.length ? h2hList.map(h => { const t = h.w + h.l; return `<div class="h2h">${av(h.name)}<span class="vs">vs ${esc(h.name)}</span>
+      <div class="split"><i style="width:${t ? h.w / t * 100 : 50}%"></i></div>
+      <span class="wl"><span class="w">${h.w}승</span> <span class="l">${h.l}패</span></span></div>`; }).join('') : '<div class="muted">기록 없음</div>'}
+  </div>
+  <div class="section-title"><h2>상세</h2><span>열 제목을 눌러 정렬</span></div>
+  <div class="card"><div class="tablewrap"><table>
+    <tr><th>이름</th>${th('games','게임')}${th('wins','1등')}${th('rate','1등률')}${th('avgRank','평균순위')}${th('last','꼴찌')}${th('paid','낸 돈')}${th('done','소화율')}${th('firstAvg','1등 평균시간')}</tr>
+    ${rows.map(p => `<tr><td><b>${esc(p.name)}</b></td><td>${p.games}</td><td>${p.wins}</td><td>${(p.rate*100).toFixed(0)}%</td><td>${p.avgRank.toFixed(1)}</td>
+      <td>${p.last}</td><td>${won(p.paid)}</td><td>${(p.done*100).toFixed(0)}%</td><td>${p.firstAvg != null ? Math.round(p.firstAvg) + '분' : '-'}</td></tr>`).join('')}
+  </table></div>
+  <div class="muted" style="margin-top:10px;font-size:12px">팀전 게임비는 꼴찌팀 인원수로 나눠서 계산 · 소화율 = 친 다마 / 목표 다마</div></div>`
+  : `<div class="card"><div class="empty"><span class="big">📊</span>해당 기간 기록이 없어요</div></div>`}`;
 }
 
 // ───────── 선수 ─────────
 function renderPlayers(){
   const ps = [...state.players].sort((a,b) => (a.archived?1:0) - (b.archived?1:0) || a.name.localeCompare(b.name, 'ko'));
+  const cnt = id => state.games.filter(g => g.sides.some(s => s.members.some(m => m.id === id))).length;
   return `
+  <div class="section-title"><h2>선수 추가</h2></div>
   <div class="card">
-    <h2>선수 추가</h2>
-    <div class="row">
-      <input id="npName" class="grow" placeholder="이름">
-      <label class="f">4구 다마<input id="np4" type="number" inputmode="numeric" value="150"></label>
-      <label class="f">3구 다마<input id="np3" type="number" inputmode="numeric" value="20"></label>
-      <button class="btn pri" id="addPlayer" style="align-self:flex-end">추가</button>
+    <div class="add-row">
+      <label class="f">이름<input id="npName" placeholder="이름"></label>
+      <label class="f">4구<input id="np4" type="number" inputmode="numeric" value="150"></label>
+      <label class="f">3구<input id="np3" type="number" inputmode="numeric" value="20"></label>
+      <button class="btn pri" id="addPlayer" style="padding:11px 16px">추가</button>
     </div>
   </div>
+  <div class="section-title"><h2>선수 목록</h2><span>기본 다마 4구 / 3구</span></div>
   <div class="card">
-    <h2>선수 목록 · 기본 다마</h2>
-    ${ps.length ? ps.map(p => `<div class="list-item" style="${p.archived?'opacity:.45':''}">
-      <div class="grow"><b>${esc(p.name)}</b>${p.archived?' <span class="tag">숨김</span>':''}</div>
-      <label class="f">4구<input type="number" inputmode="numeric" data-p4="${p.id}" value="${p.dama4 ?? 150}"></label>
-      <label class="f">3구<input type="number" inputmode="numeric" data-p3="${p.id}" value="${p.dama3 ?? 20}"></label>
-      <button class="btn sm ghost" data-delplayer="${p.id}" style="align-self:flex-end">${p.archived?'복구':'삭제'}</button>
-    </div>`).join('') : '<div class="empty">등록된 선수가 없어요</div>'}
+    ${ps.length ? ps.map(p => `<div class="pl ${p.archived?'arch':''}">
+      ${av(p.name, 'lg')}
+      <div class="info"><b>${esc(p.name)}</b><small>${p.archived ? '숨김 · ' : ''}${cnt(p.id)}게임</small></div>
+      <input type="number" inputmode="numeric" data-p4="${p.id}" value="${p.dama4 ?? 150}" aria-label="4구 다마">
+      <input type="number" inputmode="numeric" data-p3="${p.id}" value="${p.dama3 ?? 20}" aria-label="3구 다마">
+      <button class="icon-btn" data-delplayer="${p.id}" aria-label="${p.archived?'복구':'삭제'}">${p.archived ? '↺' : ICON_TRASH}</button>
+    </div>`).join('') : '<div class="empty"><span class="big">👥</span>등록된 선수가 없어요</div>'}
   </div>
+  <div class="section-title"><h2>백업</h2></div>
   <div class="card">
-    <h2>백업</h2>
     <div class="row">
-      <button class="btn ghost grow" id="exportBtn">JSON 내보내기</button>
-      <label class="btn ghost grow" style="text-align:center">JSON 불러오기<input id="importFile" type="file" accept=".json" class="hidden"></label>
+      <button class="btn ghost grow sm" id="exportBtn" style="padding:12px">JSON 내보내기</button>
+      <label class="btn ghost grow sm" style="padding:12px">JSON 불러오기<input id="importFile" type="file" accept=".json" class="hidden"></label>
     </div>
-    <div class="muted" style="margin-top:8px">${store.online ? 'Firebase에 저장 중 — 친구들과 같은 기록을 공유합니다.' : '지금은 이 기기에만 저장돼요. firebase-config.js를 설정하면 친구들과 공유됩니다.'}</div>
+    <div class="muted" style="margin-top:10px;font-size:12px">${store.online ? 'Firebase에 실시간 저장 중 — 친구들과 같은 기록을 공유합니다.' : '지금은 이 기기에만 저장돼요. firebase-config.js를 설정하면 친구들과 공유됩니다.'}</div>
   </div>`;
 }
 
 // ───────── 이벤트 ─────────
-$('#nav').onclick = e => { const b = e.target.closest('button'); if (b) { tab = b.dataset.tab; render(); } };
+$('#nav').onclick = e => { const b = e.target.closest('button'); if (b) { tab = b.dataset.tab; render(); window.scrollTo({top: 0}); } };
 
 $('#app').addEventListener('click', async e => {
   const t = e.target.closest('button, [data-sort]') || e.target;
@@ -501,23 +865,31 @@ $('#app').addEventListener('click', async e => {
     setup.teamDama = {A:'',B:''};
     render();
   }
+  if (d.step) {
+    const inp = t.parentElement.querySelector('input');
+    inp.value = Math.max(0, (Number(inp.value) || 0) + Number(d.step));
+    inp.dispatchEvent(new Event('change', {bubbles: true}));
+  }
+  if (d.fee) { $('#fee').value = d.fee; ui.fee = Number(d.fee); saveUi(); }
   if (t.id === 'startBtn' || t.id === 'manualBtn') {
     const sides = buildSides(); if (!sides) return;
     ui.fee = Number($('#fee').value) || 0; saveUi();
-    const game = { kind: ui.kind, mode: ui.mode, sides, start: new Date().toISOString(), fee: ui.fee };
-    if (t.id === 'startBtn') { live = game; saveLive(); render(); }
-    else openResult(game, true);
+    const game = { kind: ui.kind, mode: ui.mode, sides, start: new Date().toISOString(), fee: ui.fee, events: [] };
+    if (t.id === 'startBtn') { live = game; pushLive(); render(); }
+    else openResult(game, 'manual');
   }
   // 라이브
-  if (d.minus !== undefined) { const s = live.sides[d.minus]; s.remaining = Math.max(0, s.remaining - 1); saveLive(); render(); if (s.remaining === 0) toast(`${s.team ? s.team + '팀' : s.members[0].name} 다마 끝!`); }
-  if (d.plus !== undefined) { const s = live.sides[d.plus]; s.remaining = Math.min(s.dama, s.remaining + 1); saveLive(); render(); }
-  if (t.id === 'finishBtn') openResult(live, false);
-  if (t.id === 'cancelLive' && confirm('진행 중인 게임을 취소할까요? (기록되지 않아요)')) { live = null; saveLive(); render(); }
+  if (d.minus !== undefined) liveHit(Number(d.minus));
+  if (d.plus !== undefined) liveUndo(Number(d.plus));
+  if (t.id === 'finishBtn') openResult(live, 'live');
+  if (t.id === 'cancelLive' && confirm('진행 중인 게임을 취소할까요? (기록되지 않아요)')) { live = null; await store.setLive(null); render(); }
   // 기록
+  if (d.editgame) { const g = state.games.find(x => x.id === d.editgame); if (g) openResult(g, 'edit'); }
   if (d.delgame && confirm('이 게임 기록을 삭제할까요?')) { await store.deleteGame(d.delgame); toast('삭제했어요'); }
   // 통계
   if (d.f) { statFilter[d.f] = d.v; render(); }
   if (d.sort) { statFilter.sort = d.sort; render(); }
+  if (d.h2h) { statFilter.h2h = d.h2h; render(); }
   // 선수
   if (t.id === 'addPlayer') {
     const name = $('#npName').value.trim();
@@ -540,17 +912,19 @@ $('#app').addEventListener('click', async e => {
   }
 });
 
+$('#app').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'npName') $('#addPlayer').click(); });
+
 $('#app').addEventListener('change', async e => {
   const d = e.target.dataset;
   if (d.dama) setup.dama[d.dama] = Number(e.target.value);
   if (d.tdama) setup.teamDama[d.tdama] = Number(e.target.value);
+  if (e.target.id === 'fee') { ui.fee = Number(e.target.value) || 0; saveUi(); }
   if (d.p4) await store.updatePlayer(d.p4, { dama4: Number(e.target.value) || 0 });
   if (d.p3) await store.updatePlayer(d.p3, { dama3: Number(e.target.value) || 0 });
   if (e.target.id === 'importFile' && e.target.files[0]) {
     try {
       const data = JSON.parse(await e.target.files[0].text());
       if (!confirm(`선수 ${data.players?.length || 0}명, 게임 ${data.games?.length || 0}개를 추가할까요?`)) return;
-      // id 매핑 유지: 이름이 같은 선수는 기존 선수로 합침
       const idMap = {};
       for (const p of data.players || []) {
         const ex = state.players.find(x => x.name === p.name);
@@ -575,15 +949,21 @@ try {
   console.error(err); toast('Firebase 연결 실패 — 로컬 모드로 전환'); store = makeLocalStore();
 }
 const tag = $('#modeTag');
-tag.textContent = store.online ? '● 공유 중' : '이 기기에만 저장';
+tag.querySelector('span').textContent = store.online ? '공유 중' : '이 기기만';
 tag.classList.toggle('on', store.online);
 let pending = false;
-store.subscribe(() => {
-  // 입력 중일 때 화면이 다시 그려지며 포커스가 날아가지 않도록
-  if (document.activeElement?.matches('#app input') && tab !== 'history') { pending = true; return; }
+const safeRender = () => {
+  // 입력 중이거나 결과 창이 떠 있으면 다시 그리지 않음 (포커스 유지)
+  if ((document.activeElement?.matches('#app input') && tab !== 'history') || $('#modalRoot').innerHTML) { pending = true; return; }
   render();
+};
+store.subscribe(safeRender);
+store.subscribeLive(v => {
+  const was = !!live; live = v;
+  if (tab === 'play' || (!was && v)) safeRender();
 });
-document.addEventListener('focusout', () => setTimeout(() => { if (pending && !document.activeElement?.matches('#app input')) { pending = false; render(); } }, 0));
+document.addEventListener('focusout', () => setTimeout(() => { if (pending && !document.activeElement?.matches('#app input') && !$('#modalRoot').innerHTML) { pending = false; render(); } }, 0));
+new MutationObserver(() => { if (pending && !$('#modalRoot').innerHTML) { pending = false; render(); } }).observe($('#modalRoot'), { childList: true });
 </script>
 </body>
 </html>
