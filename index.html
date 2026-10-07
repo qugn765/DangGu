@@ -149,7 +149,14 @@ label.f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:60
 .ring small{font-size:10px;color:var(--muted);margin-top:2px}
 .hit{width:58px;height:58px;border-radius:18px;border:0;background:linear-gradient(180deg,#2dd483,#1fae6b);color:#05220f;font-size:30px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(45,212,131,.25);flex:none}
 .hit:active{transform:scale(.94)}
-.undo{width:34px;height:34px;border-radius:10px;border:1px solid var(--border-2);background:none;color:var(--muted);font-size:16px;cursor:pointer;flex:none}
+.undo{width:52px;height:52px;border-radius:16px;border:1px solid var(--border-2);background:var(--surface-2);color:var(--text-2);font-size:17px;font-weight:800;cursor:pointer;flex:none;font-variant-numeric:tabular-nums}
+.undo:active{transform:scale(.94)}
+.hit{font-size:20px!important}
+.tally{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.tally span{font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tally .m{background:var(--felt-soft);color:var(--felt-2)}
+.tally .p{background:var(--red-soft);color:var(--red)}
+.tally small{font-weight:500;opacity:.8}
 
 /* history */
 .day{font-size:13px;font-weight:700;color:var(--muted);margin:20px 4px 8px}
@@ -292,6 +299,8 @@ const ICON_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 
 // ───────── 순위 계산 ─────────
 const ratio = s => s.dama ? s.remaining / s.dama : 1;
+const stepOf = g => g.kind === '3구' ? 1 : 10;   // 4구는 10씩, 3구는 1씩
+const tally = s => `<div class="tally"><span class="m">−${s.minus || 0} <small>${s.minusN || 0}번</small></span>${s.plus ? `<span class="p">+${s.plus} <small>${s.plusN || 0}번</small></span>` : ''}</div>`;
 // 저장된 게임의 순위 배열 (예전 기록은 승자/꼴찌/남은 비율로 추정)
 function ranksOf(g){
   if (g.sides.every(s => s.rank)) return g.sides.map(s => s.rank);
@@ -471,6 +480,7 @@ function buildSides(){
 // ───────── 진행 중 게임 ─────────
 function renderLive(){
   const n = live.sides.length;
+  const step = stepOf(live);
   const order = live.sides.map((_, i) => i).sort((a, b) => (live.sides[a].rank || 99) - (live.sides[b].rank || 99) || a - b);
   const sides = order.map(i => {
     const s = live.sides[i];
@@ -481,10 +491,11 @@ function renderLive(){
         ${s.rank ? `<span class="rk ${s.rank===1?'r1':''} ${s.rank===n?'last':''}">${s.rank}등</span> ` : ''}${s.team ? `<span class="team-badge ${s.team}">${s.team}</span> ` : ''}${avGroup(s.members, s.team ? 'sm' : '')}
         <b>${sideNames(s)}</b>
         ${fin ? `<div class="fin-note">${s.finishMin}분에 끝</div>` : `<span class="sub num">${s.dama - s.remaining} / ${s.dama}</span>`}
+        ${tally(s)}
       </div>
-      <button class="undo" data-plus="${i}" aria-label="되돌리기">↺</button>
+      <button class="undo" data-plus="${i}" aria-label="${step} 더하기">+${step}</button>
       <div class="ring" style="--p:${pct}"><div><b>${s.remaining}</b><small>남음</small></div></div>
-      <button class="hit" data-minus="${i}" ${fin ? 'disabled' : ''} aria-label="한 개 침">−</button>
+      <button class="hit" data-minus="${i}" ${fin ? 'disabled' : ''} aria-label="${step} 빼기">−${step}</button>
     </div>`;
   }).join('');
   const left = live.sides.filter(s => s.remaining > 0).length;
@@ -492,7 +503,7 @@ function renderLive(){
   <div class="card live-head">
     <div class="live-meta"><span class="pill rec">진행 중</span><span class="pill felt">${live.kind} ${live.mode}${n > 2 ? ` · ${n}명` : ''}</span></div>
     <div class="timer" id="timer">00:00</div>
-    <div class="muted">${fmtDate(live.start)} 시작 · ${n > 2 && left < n ? `${n - left}명 끝 · ${left}명 남음` : '칠 때마다 − 를 누르세요'}</div>
+    <div class="muted">${fmtDate(live.start)} 시작 · ${n > 2 && left < n ? `${n - left}명 끝 · ${left}명 남음` : `칠 때마다 −${step} · 벌점/정정은 +${step}`}</div>
   </div>
   ${sides}
   <div class="actions">
@@ -511,7 +522,8 @@ function tick(){
 function liveHit(i){
   const s = live.sides[i];
   if (s.remaining <= 0) return;
-  s.remaining--;
+  const step = Math.min(stepOf(live), s.remaining);
+  s.remaining -= step; s.minus = (s.minus || 0) + step; s.minusN = (s.minusN || 0) + 1;
   if (navigator.vibrate) navigator.vibrate(15);
   if (s.remaining === 0) {
     const n = live.sides.length;
@@ -534,9 +546,9 @@ function liveHit(i){
 }
 function liveUndo(i){
   const s = live.sides[i];
-  if (s.remaining >= s.dama) return;
   const wasFin = s.remaining <= 0;
-  s.remaining++;
+  const step = stepOf(live);
+  s.remaining += step; s.plus = (s.plus || 0) + step; s.plusN = (s.plusN || 0) + 1;
   if (wasFin) {
     delete s.rank; delete s.finishMin;
     live.events = (live.events || []).filter(e => e.side !== i);
@@ -666,6 +678,7 @@ function openResult(game, mode){
     if (n === 2 && fins.length && events[0].min == null) events[0].min = D;
     const sides = S.map((s, i) => {
       const o = { members: s.members, dama: s.dama, remaining: s.remaining, rank: ranks[i] };
+      ['minus','minusN','plus','plusN'].forEach(k => { if (s[k]) o[k] = s[k]; });
       if (s.team) o.team = s.team;
       const ev = events.find(x => x.side === i); o.finishMin = ev ? ev.min : null;
       return o;
@@ -706,7 +719,7 @@ function renderHistory(){
         ${s.team ? avGroup(s.members, 'sm') : av(s.members[0].name)}
         <div class="name">${s.team ? `<span class="team-badge ${s.team}">${s.team}</span> ` : ''}${sideNames(s)}${i===g.payer?'<span class="badge pay">게임비</span>':''}
           <div class="mini"><i style="width:${pct}%"></i></div></div>
-        <div class="rem num">${s.remaining > 0 ? `<b>${s.remaining}</b> 남음` : `<b style="color:var(--gold)">${s.finishMin != null ? s.finishMin + '분' : '완료'}</b>`}<br><small class="muted">${s.dama - s.remaining}/${s.dama}</small></div>
+        <div class="rem num">${s.remaining > 0 ? `<b>${s.remaining}</b> 남음` : `<b style="color:var(--gold)">${s.finishMin != null ? s.finishMin + '분' : '완료'}</b>`}<br><small class="muted">${s.minus != null ? `−${s.minus}${s.plus ? ` / +${s.plus}` : ''}` : `${s.dama - s.remaining}/${s.dama}`}</small></div>
       </div>`; }).join('');
     const evs = (g.events || []).filter(e => e.min != null || (e.rem || []).some(v => v != null)).sort((a, b) => (a.min ?? 1e9) - (b.min ?? 1e9));
     const timeline = n > 2 && evs.length ? `<div class="timeline">${evs.map(e => {
