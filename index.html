@@ -463,7 +463,8 @@ const ui = lsGet('danggu-ui', { kind: '4구', mode: '개인전', fee: 10000 });
 if (!ui.feeK) { ui.fee = 10000; ui.feeK = true; }   // 게임비 입력은 천원 단위 (저장은 원 단위)
 let setup = { picked: {}, dama: {}, teamDama: {A: '', B: ''} };   // picked: id -> true | 'A' | 'B'
 let live = null;
-let statFilter = { kind: '전체', period: '전체', sort: 'rate', h2h: '' };
+let statFilter = { kind: '4구', mode: '전체', period: '전체', sort: 'rate', h2h: '' };
+let histFilter = { kind: '4구', pid: '' };
 let timerHandle = null;
 let wakeLock = null;
 
@@ -889,8 +890,21 @@ function openFeeEdit(g){
 
 // ───────── 기록 ─────────
 function renderHistory(){
-  const games = [...state.games].sort((a,b) => b.date.localeCompare(a.date));
-  if (!games.length) return `<div class="section-title"><h2>기록</h2></div><div class="card"><div class="empty"><span class="big">📋</span>아직 기록이 없어요</div></div>`;
+  const ofKind = state.games.filter(g => g.kind === histFilter.kind);
+  // 이 종목에 나온 선수들 (게임 수 많은 순)
+  const cnt = {};
+  ofKind.forEach(g => g.sides.forEach(s => s.members.forEach(m => { (cnt[m.id] ??= { id: m.id, name: pname(m.id) || m.name, n: 0 }).n++; })));
+  const people = Object.values(cnt).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name, 'ko'));
+  if (histFilter.pid && !cnt[histFilter.pid]) histFilter.pid = '';
+  const games = ofKind.filter(g => !histFilter.pid || g.sides.some(s => s.members.some(m => m.id === histFilter.pid)))
+    .sort((a,b) => b.date.localeCompare(a.date));
+  const top = `
+  <div class="filters" style="margin-top:14px">
+    <div class="seg">${['4구','3구'].map(k => `<button data-hk="${k}" class="${histFilter.kind===k?'on':''}">${k} <span class="muted" style="font-size:12px">${state.games.filter(g => g.kind === k).length}</span></button>`).join('')}</div>
+  </div>
+  ${people.length ? `<div class="chips" style="margin-bottom:4px"><button class="chip ${!histFilter.pid?'on':''}" data-hp="" style="padding-left:12px">전체</button>${people.map(x => `<button class="chip ${histFilter.pid===x.id?'on':''}" data-hp="${x.id}">${av(x.name)}${esc(x.name)} <span class="muted" style="font-size:12px">${x.n}</span></button>`).join('')}</div>` : ''}`;
+  const who = histFilter.pid ? (cnt[histFilter.pid]?.name || '') : '';
+  if (!games.length) return `<div class="section-title"><h2>기록</h2></div>${top}<div class="card"><div class="empty"><span class="big">📋</span>${histFilter.kind} 기록이 없어요</div></div>`;
   let lastDay = '';
   const items = games.map(g => {
     const day = new Date(g.date).toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'short'});
@@ -919,16 +933,15 @@ function renderHistory(){
         <button class="icon-btn" data-delgame="${g.id}" aria-label="삭제">${ICON_TRASH}</button></div>
       ${sides}${timeline}</div>`;
   }).join('');
-  return `<div class="section-title"><h2>기록</h2><span>전체 ${games.length}게임</span></div>${items}`;
+  return `<div class="section-title"><h2>기록</h2><span>${histFilter.kind}${who ? ' · ' + esc(who) : ''} ${games.length}게임</span></div>${top}${items}`;
 }
 
 // ───────── 통계 ─────────
 function filterGames(){
   const now = new Date();
   return state.games.filter(g => {
-    if (statFilter.kind !== '전체') {
-      if (statFilter.kind === '팀전' ? g.mode !== '팀전' : (g.kind !== statFilter.kind || g.mode === '팀전')) return false;
-    }
+    if (g.kind !== statFilter.kind) return false;
+    if (statFilter.mode !== '전체' && g.mode !== statFilter.mode) return false;
     const d = new Date(g.date);
     if (statFilter.period === '이번달') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
     if (statFilter.period === '최근30일') return now - d <= 30 * 864e5;
@@ -973,9 +986,10 @@ function renderStats(){
   const h2hId = P[statFilter.h2h] ? statFilter.h2h : board[0]?.id;
   const h2hList = h2hId ? Object.entries(H[h2hId] || {}).map(([id, h]) => ({ id, ...h, name: pname(id) || h.name })).sort((a, b) => (b.w + b.l) - (a.w + a.l)) : [];
   return `
-  <div class="section-title"><h2>통계</h2><span>${games.length}게임 기준</span></div>
+  <div class="section-title"><h2>통계</h2><span>${statFilter.kind}${statFilter.mode !== '전체' ? ' ' + statFilter.mode : ''} · ${games.length}게임</span></div>
   <div class="filters">
-    ${seg('kind', ['전체','4구','3구','팀전'])}
+    ${seg('kind', ['4구','3구'])}
+    ${seg('mode', ['전체','개인전','팀전'])}
     ${seg('period', ['전체','올해','이번달','최근30일'])}
   </div>
   <div class="kpis">
@@ -1126,6 +1140,8 @@ $('#app').addEventListener('click', async e => {
   if (d.delgame && confirm('이 게임 기록을 삭제할까요?')) { await store.deleteGame(d.delgame); toast('삭제했어요'); }
   // 통계
   if (d.f) { statFilter[d.f] = d.v; render(); }
+  if (d.hk) { histFilter.kind = d.hk; histFilter.pid = ''; render(); }
+  if (d.hp !== undefined && t.matches('[data-hp]')) { histFilter.pid = d.hp; render(); }
   if (d.sort) { statFilter.sort = d.sort; render(); }
   if (d.h2h) { statFilter.h2h = d.h2h; render(); }
   // 선수
