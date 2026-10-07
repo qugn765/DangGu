@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>당구 기록</title>
+<meta name="theme-color" content="#0f3d2e">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23e8e8e8'/><circle cx='50' cy='50' r='18' fill='%23c0392b'/></svg>">
+<style>
+:root{
+  --bg:#0b2a20; --felt:#0f3d2e; --card:#14503c; --card2:#185c45; --line:#2a6b55;
+  --text:#eef5f1; --muted:#9cc2b2; --accent:#f2c14e; --red:#e2554a; --white:#f4f4f4; --ok:#5fd18b;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;-webkit-tap-highlight-color:transparent}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:var(--felt);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px}
+header h1{font-size:18px;margin:0;flex:1;display:flex;align-items:center;gap:8px}
+.ball{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#bbb);display:inline-block}
+.ball.r{background:radial-gradient(circle at 35% 35%,#ff8a80,#b71c1c)}
+.mode{font-size:11px;padding:3px 8px;border-radius:99px;background:#0006;color:var(--muted)}
+.mode.on{color:var(--ok)}
+main{max-width:720px;margin:0 auto;padding:14px 16px}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:5;background:var(--felt);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;color:var(--muted);padding:10px 0 12px;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+nav button span{font-size:20px}
+nav button.on{color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--muted);font-weight:600}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+.seg{display:flex;background:#0005;border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;color:var(--muted);padding:8px 10px;border-radius:8px;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--card2);color:var(--text);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:#0003;color:var(--text);padding:8px 12px;border-radius:99px;font-size:14px;cursor:pointer}
+.chip.on{background:var(--accent);color:#222;border-color:var(--accent);font-weight:700}
+.chip.A{background:#3b82f6;border-color:#3b82f6;color:#fff;font-weight:700}
+.chip.B{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+input,select{background:#0005;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 10px;font-size:15px;min-width:0}
+input[type=number]{width:84px;text-align:center}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.btn{border:0;border-radius:12px;padding:12px 14px;font-size:15px;font-weight:700;cursor:pointer;background:var(--card2);color:var(--text)}
+.btn.pri{background:var(--accent);color:#222}
+.btn.red{background:var(--red);color:#fff}
+.btn.ghost{background:none;border:1px solid var(--line)}
+.btn.sm{padding:7px 10px;font-size:13px;border-radius:9px}
+.btn:disabled{opacity:.4}
+.full{width:100%}
+.muted{color:var(--muted);font-size:13px}
+.list-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.list-item:last-child{border-bottom:0}
+.empty{text-align:center;color:var(--muted);padding:30px 0}
+/* live */
+.timer{font-size:48px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:1px;margin:4px 0 2px}
+.side{background:var(--card2);border-radius:12px;padding:12px;margin-top:10px}
+.side.win{outline:2px solid var(--accent)}
+.side .names{font-weight:700;font-size:16px}
+.side .big{font-size:40px;font-weight:800;min-width:70px;text-align:center;font-variant-numeric:tabular-nums}
+.pm{width:56px;height:56px;border-radius:50%;border:0;font-size:28px;font-weight:800;cursor:pointer}
+.pm.minus{background:var(--accent);color:#222}
+.pm.plus{background:#0005;color:var(--text)}
+.bar{height:6px;border-radius:3px;background:#0005;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--ok)}
+/* record */
+.game{padding:12px 0;border-bottom:1px solid var(--line)}
+.game:last-child{border-bottom:0}
+.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:6px;background:#0005;color:var(--muted);margin-right:4px}
+.tag.win{background:var(--accent);color:#222;font-weight:700}
+.tag.pay{background:var(--red);color:#fff;font-weight:700}
+.gside{display:flex;justify-content:space-between;font-size:14px;padding:3px 0}
+/* stats */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+@media(min-width:560px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi b{display:block;font-size:20px;margin-top:2px}
+.kpi small{color:var(--muted);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 4px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;cursor:pointer}
+.tablewrap{overflow-x:auto}
+.rate{display:inline-block;height:6px;border-radius:3px;background:var(--accent);vertical-align:middle;margin-left:4px}
+/* modal */
+.modal{position:fixed;inset:0;background:#000a;z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--felt);width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet h3{margin:0 0 12px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;z-index:30}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1><i class="ball"></i><i class="ball r"></i> 당구 기록</h1>
+  <span id="modeTag" class="mode">연결 중…</span>
+</header>
+<main id="app"></main>
+<nav id="nav">
+  <button data-tab="play" class="on"><span>🎱</span>게임</button>
+  <button data-tab="history"><span>📋</span>기록</button>
+  <button data-tab="stats"><span>📊</span>통계</button>
+  <button data-tab="players"><span>👥</span>선수</button>
+</nav>
+<div id="modalRoot"></div>
+
+<script src="firebase-config.js"></script>
+<script type="module">
+// ───────── 공통 유틸 ─────────
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const won = n => Math.round(n || 0).toLocaleString('ko-KR') + '원';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const pad = n => String(n).padStart(2, '0');
+const fmtDate = iso => { const d = new Date(iso); return `${d.getMonth()+1}/${d.getDate()}(${'일월화수목금토'[d.getDay()]}) ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtMin = m => m >= 60 ? `${Math.floor(m/60)}시간 ${Math.round(m%60)}분` : `${Math.round(m)}분`;
+const localInput = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+function toast(msg){ const t = document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 1800); }
+
+// ───────── 저장소 (Firebase 또는 로컬) ─────────
+const state = { players: [], games: [] };
+let store;
+
+function makeLocalStore(){
+  const KEY = 'danggu-data';
+  let listener = () => {};
+  const load = () => { const d = lsGet(KEY, {players:[], games:[]}); state.players = d.players; state.games = d.games; };
+  const save = () => { lsSet(KEY, {players: state.players, games: state.games}); listener(); };
+  return {
+    online: false,
+    subscribe(cb){ listener = cb; load(); cb(); },
+    async addPlayer(p){ state.players.push({id: uid(), ...p}); save(); },
+    async updatePlayer(id, p){ Object.assign(state.players.find(x => x.id === id), p); save(); },
+    async deletePlayer(id){ state.players = state.players.filter(x => x.id !== id); save(); },
+    async addGame(g){ state.games.push({id: uid(), ...g}); save(); },
+    async deleteGame(id){ state.games = state.games.filter(x => x.id !== id); save(); },
+  };
+}
+
+async function makeFirebaseStore(cfg, room){
+  const V = '10.12.2';
+  const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+  const fs = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
+  const db = fs.getFirestore(initializeApp(cfg));
+  const pc = fs.collection(db, 'rooms', room, 'players');
+  const gc = fs.collection(db, 'rooms', room, 'games');
+  return {
+    online: true,
+    subscribe(cb){
+      fs.onSnapshot(pc, s => { state.players = s.docs.map(d => ({id: d.id, ...d.data()})); cb(); }, e => toast('불러오기 실패: ' + e.code));
+      fs.onSnapshot(gc, s => { state.games = s.docs.map(d => ({id: d.id, ...d.data()})); cb(); }, e => toast('불러오기 실패: ' + e.code));
+    },
+    addPlayer: p => fs.addDoc(pc, p),
+    updatePlayer: (id, p) => fs.updateDoc(fs.doc(pc, id), p),
+    deletePlayer: id => fs.deleteDoc(fs.doc(pc, id)),
+    addGame: g => fs.addDoc(gc, g),
+    deleteGame: id => fs.deleteDoc(fs.doc(gc, id)),
+  };
+}
+
+// ───────── 화면 상태 ─────────
+let tab = 'play';
+const ui = lsGet('danggu-ui', { kind: '4구', mode: '개인전', fee: 12000 });
+let setup = { picked: {}, dama: {}, teamDama: {A: '', B: ''} };   // picked: id -> true | 'A' | 'B'
+let live = lsGet('danggu-live', null);
+let statFilter = { kind: '전체', period: '전체', sort: 'rate' };
+let timerHandle = null;
+
+const activePlayers = () => state.players.filter(p => !p.archived).sort((a,b) => a.name.localeCompare(b.name, 'ko'));
+const pname = id => state.players.find(p => p.id === id)?.name;
+const defDama = (p, kind) => kind === '3구' ? (p.dama3 ?? 20) : (p.dama4 ?? 150);
+const saveUi = () => lsSet('danggu-ui', ui);
+const saveLive = () => lsSet('danggu-live', live);
+
+function render(){
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  clearInterval(timerHandle);
+  const app = $('#app');
+  if (tab === 'play') app.innerHTML = live ? renderLive() : renderSetup();
+  if (tab === 'history') app.innerHTML = renderHistory();
+  if (tab === 'stats') app.innerHTML = renderStats();
+  if (tab === 'players') app.innerHTML = renderPlayers();
+  if (tab === 'play' && live) { tick(); timerHandle = setInterval(tick, 1000); }
+}
+
+// ───────── 게임 세팅 ─────────
+function renderSetup(){
+  const ps = activePlayers();
+  const team = ui.mode === '팀전';
+  let body = '';
+  if (!ps.length) {
+    body = `<div class="empty">먼저 <b>선수</b> 탭에서 친구들을 등록하세요</div>`;
+  } else {
+    const chips = ps.map(p => {
+      const v = setup.picked[p.id];
+      const cls = team ? (v || '') : (v ? 'on' : '');
+      return `<button class="chip ${cls}" data-pick="${p.id}">${esc(p.name)}${team && v ? ' · ' + v : ''}</button>`;
+    }).join('');
+    let rows = '';
+    if (!team) {
+      const sel = ps.filter(p => setup.picked[p.id]);
+      rows = sel.map(p => `
+        <div class="list-item"><div class="grow"><b>${esc(p.name)}</b></div>
+          <span class="muted">다마</span>
+          <input type="number" inputmode="numeric" data-dama="${p.id}" value="${setup.dama[p.id] ?? defDama(p, ui.kind)}">
+        </div>`).join('');
+    } else {
+      rows = ['A','B'].map(t => {
+        const mem = ps.filter(p => setup.picked[p.id] === t);
+        const def = mem.length ? Math.round(mem.reduce((s,p) => s + defDama(p, ui.kind), 0) / mem.length) : '';
+        return `<div class="list-item"><div class="grow"><span class="chip ${t}" style="padding:3px 9px">${t}팀</span>
+          ${mem.map(p => esc(p.name)).join(', ') || '<span class="muted">선수 선택</span>'}</div>
+          <span class="muted">다마</span>
+          <input type="number" inputmode="numeric" data-tdama="${t}" value="${setup.teamDama[t] !== '' ? setup.teamDama[t] : def}">
+        </div>`;
+      }).join('');
+    }
+    body = `
+      <div class="muted" style="margin-bottom:8px">${team ? '탭할 때마다 A팀 → B팀 → 해제' : '참가자를 선택하세요'}</div>
+      <div class="chips">${chips}</div>
+      <div style="margin-top:10px">${rows}</div>`;
+  }
+  return `
+  <div class="card">
+    <h2>새 게임</h2>
+    <div class="row" style="margin-bottom:10px">
+      <div class="seg grow">${['4구','3구'].map(k => `<button data-kind="${k}" class="${ui.kind===k?'on':''}">${k}</button>`).join('')}</div>
+      <div class="seg grow">${['개인전','팀전'].map(k => `<button data-mode="${k}" class="${ui.mode===k?'on':''}">${k}</button>`).join('')}</div>
+    </div>
+    ${body}
+  </div>
+  <div class="card">
+    <div class="row">
+      <label class="f grow">게임비 (꼴찌가 전액)<input id="fee" type="number" inputmode="numeric" step="1000" value="${ui.fee}" style="width:100%;text-align:left"></label>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn pri grow" id="startBtn">⏱ 게임 시작</button>
+    <button class="btn ghost grow" id="manualBtn">결과 바로 입력</button>
+  </div>`;
+}
+
+function buildSides(){
+  const ps = activePlayers();
+  if (ui.mode === '팀전') {
+    const sides = ['A','B'].map(t => {
+      const mem = ps.filter(p => setup.picked[p.id] === t);
+      const inp = $(`[data-tdama="${t}"]`);
+      const dama = Number(inp?.value) || 0;
+      return { team: t, members: mem.map(p => ({id: p.id, name: p.name})), dama, remaining: dama };
+    });
+    if (sides.some(s => !s.members.length)) return toast('A팀, B팀 모두 선수를 넣어주세요');
+    if (sides.some(s => s.dama <= 0)) return toast('팀 다마를 입력하세요');
+    return sides;
+  }
+  const sel = ps.filter(p => setup.picked[p.id]);
+  if (sel.length < 2) return toast('2명 이상 선택하세요');
+  const sides = sel.map(p => { const dama = Number($(`[data-dama="${p.id}"]`)?.value) || 0; return { members: [{id: p.id, name: p.name}], dama, remaining: dama }; });
+  if (sides.some(s => s.dama <= 0)) return toast('다마를 입력하세요');
+  return sides;
+}
+
+// ───────── 진행 중 게임 ─────────
+const sideName = s => s.team ? `${s.team}팀 · ${s.members.map(m => esc(m.name)).join(', ')}` : esc(s.members[0].name);
+
+function renderLive(){
+  const sides = live.sides.map((s, i) => {
+    const pct = s.dama ? Math.max(0, Math.min(100, (s.dama - s.remaining) / s.dama * 100)) : 0;
+    return `<div class="side ${s.remaining <= 0 ? 'win' : ''}">
+      <div class="row"><div class="grow"><div class="names">${sideName(s)}</div><div class="muted">다마 ${s.dama}</div></div>
+        <button class="pm plus" data-plus="${i}">+</button>
+        <div class="big">${s.remaining}</div>
+        <button class="pm minus" data-minus="${i}">−</button>
+      </div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <div class="row"><span class="tag">${live.kind}</span><span class="tag">${live.mode}</span><span class="grow"></span><span class="muted">시작 ${fmtDate(live.start)}</span></div>
+    <div class="timer" id="timer">00:00</div>
+    <div class="muted" style="text-align:center">남은 다마 · 칠 때마다 − 를 누르세요</div>
+    ${sides}
+  </div>
+  <div class="row">
+    <button class="btn pri grow" id="finishBtn">🏁 게임 종료</button>
+    <button class="btn ghost" id="cancelLive">취소</button>
+  </div>`;
+}
+function tick(){
+  const el = $('#timer'); if (!el || !live) return;
+  const sec = Math.floor((Date.now() - new Date(live.start)) / 1000);
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  el.textContent = (h ? h + ':' + pad(m) : pad(m)) + ':' + pad(s);
+}
+
+// ───────── 결과 입력 모달 ─────────
+function autoWinner(sides){ let w = 0; sides.forEach((s,i) => { if (s.remaining < sides[w].remaining) w = i; }); return w; }
+function autoPayer(sides, winner){
+  if (sides.length === 2) return winner === 0 ? 1 : 0;
+  // 개인전: 남은 다마 비율이 가장 큰 사람(꼴찌)
+  let p = winner === 0 ? 1 : 0;
+  sides.forEach((s,i) => { if (i !== winner && s.remaining / s.dama > sides[p].remaining / sides[p].dama) p = i; });
+  return p;
+}
+
+function openResult(game, manual){
+  // game: {kind, mode, sides, start, fee}
+  const sides = game.sides.map(s => ({...s}));
+  let winner = autoWinner(sides), payer = autoPayer(sides, winner);
+  let touchedW = false, touchedP = false;
+  const durAuto = manual ? '' : Math.max(1, Math.round((Date.now() - new Date(game.start)) / 60000));
+  const root = $('#modalRoot');
+  const draw = () => {
+    root.innerHTML = `<div class="modal" id="mbg"><div class="sheet">
+      <h3>${manual ? '결과 입력' : '게임 종료'}</h3>
+      ${sides.map((s,i) => `<div class="list-item">
+        <div class="grow"><b>${sideName(s)}</b><div class="muted">다마 ${s.dama}</div></div>
+        <span class="muted">남은</span><input type="number" inputmode="numeric" data-rem="${i}" value="${s.remaining}">
+      </div>`).join('')}
+      <div class="row" style="margin-top:12px">
+        <label class="f grow">승자<select id="rWin">${sides.map((s,i) => `<option value="${i}" ${i===winner?'selected':''}>${s.team ? s.team+'팀' : esc(s.members[0].name)}</option>`).join('')}</select></label>
+        <label class="f grow">꼴찌 (게임비 냄)<select id="rPay">${sides.map((s,i) => `<option value="${i}" ${i===payer?'selected':''}>${s.team ? s.team+'팀' : esc(s.members[0].name)}</option>`).join('')}</select></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="f grow">시작 시각<input id="rStart" type="datetime-local" value="${localInput(new Date(game.start))}"></label>
+        <label class="f">소요(분)<input id="rDur" type="number" inputmode="numeric" value="${durAuto}" placeholder="분"></label>
+        <label class="f">게임비<input id="rFee" type="number" inputmode="numeric" step="1000" value="${game.fee}" style="width:96px"></label>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn ghost" id="rCancel">닫기</button>
+        <button class="btn pri grow" id="rSave">저장</button>
+      </div>
+    </div></div>`;
+  };
+  draw();
+  root.oninput = e => {
+    const r = e.target.dataset.rem;
+    if (r !== undefined) {
+      sides[r].remaining = Math.max(0, Number(e.target.value) || 0);
+      if (!touchedW) { winner = autoWinner(sides); $('#rWin').value = winner; }
+      if (!touchedP) { payer = autoPayer(sides, winner); $('#rPay').value = payer; }
+    }
+  };
+  root.onchange = e => {
+    if (e.target.id === 'rWin') { touchedW = true; winner = Number(e.target.value); if (!touchedP) { payer = autoPayer(sides, winner); $('#rPay').value = payer; } }
+    if (e.target.id === 'rPay') { touchedP = true; payer = Number(e.target.value); }
+  };
+  root.onclick = async e => {
+    if (e.target.id === 'rCancel' || e.target.id === 'mbg') { root.innerHTML = ''; return; }
+    if (e.target.id === 'rSave') {
+      const dur = Number($('#rDur').value);
+      if (!dur || dur <= 0) return toast('소요 시간(분)을 입력하세요');
+      if (winner === payer) return toast('승자와 꼴찌가 같아요');
+      const rec = {
+        kind: game.kind, mode: game.mode,
+        date: new Date($('#rStart').value).toISOString(),
+        durationMin: dur, fee: Number($('#rFee').value) || 0,
+        sides, winner, payer, createdAt: new Date().toISOString(),
+      };
+      e.target.disabled = true;
+      try {
+        await store.addGame(rec);
+        root.innerHTML = '';
+        if (!manual) { live = null; saveLive(); }
+        setup.picked = {}; setup.dama = {}; setup.teamDama = {A:'', B:''};
+        toast('저장했어요');
+        tab = 'history'; render();
+      } catch (err) { e.target.disabled = false; toast('저장 실패: ' + (err.code || err.message)); }
+    }
+  };
+}
+
+// ───────── 기록 ─────────
+function renderHistory(){
+  const games = [...state.games].sort((a,b) => b.date.localeCompare(a.date));
+  if (!games.length) return `<div class="card"><div class="empty">아직 기록이 없어요</div></div>`;
+  let lastDay = '';
+  const items = games.map(g => {
+    const day = new Date(g.date).toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'short'});
+    const head = day !== lastDay ? `<div class="muted" style="margin:14px 0 4px;font-weight:700">${day}</div>` : '';
+    lastDay = day;
+    const sides = g.sides.map((s,i) => `<div class="gside">
+      <span>${i===g.winner?'<span class="tag win">승</span>':''}${i===g.payer?'<span class="tag pay">꼴찌</span>':''}${sideName(s)}</span>
+      <span class="muted">${s.dama - s.remaining}/${s.dama} · 남은 <b style="color:var(--text)">${s.remaining}</b></span></div>`).join('');
+    return head + `<div class="game">
+      <div class="row" style="margin-bottom:4px"><span class="tag">${g.kind}</span><span class="tag">${g.mode}</span>
+        <span class="muted">${fmtDate(g.date).split(' ')[1]} · ⏱ ${fmtMin(g.durationMin)} · ${won(g.fee)}</span>
+        <span class="grow"></span><button class="btn sm ghost" data-delgame="${g.id}">삭제</button></div>
+      ${sides}</div>`;
+  }).join('');
+  return `<div class="card"><h2>전체 ${games.length}게임</h2>${items}</div>`;
+}
+
+// ───────── 통계 ─────────
+function filterGames(){
+  const now = new Date();
+  return state.games.filter(g => {
+    if (statFilter.kind !== '전체') {
+      if (statFilter.kind === '팀전' ? g.mode !== '팀전' : (g.kind !== statFilter.kind || g.mode === '팀전')) return false;
+    }
+    const d = new Date(g.date);
+    if (statFilter.period === '이번달') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    if (statFilter.period === '최근30일') return now - d <= 30 * 864e5;
+    if (statFilter.period === '올해') return d.getFullYear() === now.getFullYear();
+    return true;
+  });
+}
+function renderStats(){
+  const games = filterGames();
+  const P = {};
+  const get = (m) => P[m.id] ??= { id: m.id, name: pname(m.id) || m.name, games: 0, wins: 0, last: 0, paid: 0, min: 0, rem: 0, dama: 0 };
+  let totalFee = 0, totalMin = 0;
+  games.forEach(g => {
+    totalFee += g.fee || 0; totalMin += g.durationMin || 0;
+    g.sides.forEach((s, i) => s.members.forEach(m => {
+      const p = get(m);
+      p.games++; p.min += g.durationMin || 0; p.rem += s.remaining; p.dama += s.dama;
+      if (i === g.winner) p.wins++;
+      if (i === g.payer) { p.last++; p.paid += (g.fee || 0) / s.members.length; }
+    }));
+  });
+  const rows = Object.values(P).map(p => ({...p, rate: p.games ? p.wins / p.games : 0, avgRem: p.games ? p.rem / p.games : 0, done: p.dama ? (p.dama - p.rem) / p.dama : 0 }));
+  const key = statFilter.sort;
+  rows.sort((a,b) => (b[key] - a[key]) || (b.games - a.games));
+  const durs = games.map(g => g.durationMin).filter(Boolean);
+  const th = (k, label) => `<th data-sort="${k}">${label}${key===k?' ▼':''}</th>`;
+  const seg = (name, opts) => `<div class="seg">${opts.map(o => `<button data-f="${name}" data-v="${o}" class="${statFilter[name]===o?'on':''}">${o}</button>`).join('')}</div>`;
+  return `
+  <div class="card">
+    ${seg('kind', ['전체','4구','3구','팀전'])}
+    <div style="height:8px"></div>
+    ${seg('period', ['전체','올해','이번달','최근30일'])}
+  </div>
+  <div class="kpis">
+    <div class="kpi"><small>게임 수</small><b>${games.length}</b></div>
+    <div class="kpi"><small>총 게임비</small><b>${won(totalFee)}</b></div>
+    <div class="kpi"><small>평균 게임시간</small><b>${durs.length ? fmtMin(totalMin / durs.length) : '-'}</b></div>
+    <div class="kpi"><small>최단 / 최장</small><b>${durs.length ? `${Math.min(...durs)} / ${Math.max(...durs)}분` : '-'}</b></div>
+  </div>
+  <div class="card">
+    <h2>선수별</h2>
+    ${rows.length ? `<div class="tablewrap"><table>
+      <tr><th>이름</th>${th('games','게임')}${th('wins','승')}${th('rate','승률')}${th('last','꼴찌')}${th('paid','낸 돈')}${th('done','다마 소화율')}${th('avgRem','평균 남은')}</tr>
+      ${rows.map(p => `<tr><td><b>${esc(p.name)}</b></td><td>${p.games}</td><td>${p.wins}</td>
+        <td>${(p.rate*100).toFixed(0)}%<span class="rate" style="width:${Math.round(p.rate*30)}px"></span></td>
+        <td>${p.last}</td><td>${won(p.paid)}</td><td>${(p.done*100).toFixed(0)}%</td><td>${p.avgRem.toFixed(1)}</td></tr>`).join('')}
+    </table></div>
+    <div class="muted" style="margin-top:8px">팀전 게임비는 꼴찌팀 인원수로 나눠서 계산 · 열 제목을 누르면 정렬</div>`
+    : `<div class="empty">해당 기간 기록이 없어요</div>`}
+  </div>`;
+}
+
+// ───────── 선수 ─────────
+function renderPlayers(){
+  const ps = [...state.players].sort((a,b) => (a.archived?1:0) - (b.archived?1:0) || a.name.localeCompare(b.name, 'ko'));
+  return `
+  <div class="card">
+    <h2>선수 추가</h2>
+    <div class="row">
+      <input id="npName" class="grow" placeholder="이름">
+      <label class="f">4구 다마<input id="np4" type="number" inputmode="numeric" value="150"></label>
+      <label class="f">3구 다마<input id="np3" type="number" inputmode="numeric" value="20"></label>
+      <button class="btn pri" id="addPlayer" style="align-self:flex-end">추가</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>선수 목록 · 기본 다마</h2>
+    ${ps.length ? ps.map(p => `<div class="list-item" style="${p.archived?'opacity:.45':''}">
+      <div class="grow"><b>${esc(p.name)}</b>${p.archived?' <span class="tag">숨김</span>':''}</div>
+      <label class="f">4구<input type="number" inputmode="numeric" data-p4="${p.id}" value="${p.dama4 ?? 150}"></label>
+      <label class="f">3구<input type="number" inputmode="numeric" data-p3="${p.id}" value="${p.dama3 ?? 20}"></label>
+      <button class="btn sm ghost" data-delplayer="${p.id}" style="align-self:flex-end">${p.archived?'복구':'삭제'}</button>
+    </div>`).join('') : '<div class="empty">등록된 선수가 없어요</div>'}
+  </div>
+  <div class="card">
+    <h2>백업</h2>
+    <div class="row">
+      <button class="btn ghost grow" id="exportBtn">JSON 내보내기</button>
+      <label class="btn ghost grow" style="text-align:center">JSON 불러오기<input id="importFile" type="file" accept=".json" class="hidden"></label>
+    </div>
+    <div class="muted" style="margin-top:8px">${store.online ? 'Firebase에 저장 중 — 친구들과 같은 기록을 공유합니다.' : '지금은 이 기기에만 저장돼요. firebase-config.js를 설정하면 친구들과 공유됩니다.'}</div>
+  </div>`;
+}
+
+// ───────── 이벤트 ─────────
+$('#nav').onclick = e => { const b = e.target.closest('button'); if (b) { tab = b.dataset.tab; render(); } };
+
+$('#app').addEventListener('click', async e => {
+  const t = e.target.closest('button, [data-sort]') || e.target;
+  const d = t.dataset || {};
+  // 세팅
+  if (d.kind) { ui.kind = d.kind; setup.dama = {}; setup.teamDama = {A:'',B:''}; saveUi(); render(); }
+  if (d.mode) { ui.mode = d.mode; setup.picked = {}; saveUi(); render(); }
+  if (d.pick) {
+    const v = setup.picked[d.pick];
+    if (ui.mode === '팀전') setup.picked[d.pick] = !v ? 'A' : v === 'A' ? 'B' : undefined;
+    else setup.picked[d.pick] = !v;
+    if (!setup.picked[d.pick]) delete setup.picked[d.pick];
+    setup.teamDama = {A:'',B:''};
+    render();
+  }
+  if (t.id === 'startBtn' || t.id === 'manualBtn') {
+    const sides = buildSides(); if (!sides) return;
+    ui.fee = Number($('#fee').value) || 0; saveUi();
+    const game = { kind: ui.kind, mode: ui.mode, sides, start: new Date().toISOString(), fee: ui.fee };
+    if (t.id === 'startBtn') { live = game; saveLive(); render(); }
+    else openResult(game, true);
+  }
+  // 라이브
+  if (d.minus !== undefined) { const s = live.sides[d.minus]; s.remaining = Math.max(0, s.remaining - 1); saveLive(); render(); if (s.remaining === 0) toast(`${s.team ? s.team + '팀' : s.members[0].name} 다마 끝!`); }
+  if (d.plus !== undefined) { const s = live.sides[d.plus]; s.remaining = Math.min(s.dama, s.remaining + 1); saveLive(); render(); }
+  if (t.id === 'finishBtn') openResult(live, false);
+  if (t.id === 'cancelLive' && confirm('진행 중인 게임을 취소할까요? (기록되지 않아요)')) { live = null; saveLive(); render(); }
+  // 기록
+  if (d.delgame && confirm('이 게임 기록을 삭제할까요?')) { await store.deleteGame(d.delgame); toast('삭제했어요'); }
+  // 통계
+  if (d.f) { statFilter[d.f] = d.v; render(); }
+  if (d.sort) { statFilter.sort = d.sort; render(); }
+  // 선수
+  if (t.id === 'addPlayer') {
+    const name = $('#npName').value.trim();
+    if (!name) return toast('이름을 입력하세요');
+    if (state.players.some(p => p.name === name)) return toast('이미 있는 이름이에요');
+    await store.addPlayer({ name, dama4: Number($('#np4').value) || 150, dama3: Number($('#np3').value) || 20, createdAt: new Date().toISOString() });
+    toast(`${name} 추가`);
+  }
+  if (d.delplayer) {
+    const p = state.players.find(x => x.id === d.delplayer);
+    const used = state.games.some(g => g.sides.some(s => s.members.some(m => m.id === p.id)));
+    if (p.archived) await store.updatePlayer(p.id, { archived: false });
+    else if (used) { if (confirm(`${p.name}님은 기록이 있어서 숨김 처리합니다. (통계엔 남아요)`)) await store.updatePlayer(p.id, { archived: true }); }
+    else if (confirm(`${p.name}님을 삭제할까요?`)) await store.deletePlayer(p.id);
+  }
+  if (t.id === 'exportBtn') {
+    const blob = new Blob([JSON.stringify({ players: state.players, games: state.games }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `danggu-${localInput(new Date()).slice(0,10)}.json`; a.click();
+  }
+});
+
+$('#app').addEventListener('change', async e => {
+  const d = e.target.dataset;
+  if (d.dama) setup.dama[d.dama] = Number(e.target.value);
+  if (d.tdama) setup.teamDama[d.tdama] = Number(e.target.value);
+  if (d.p4) await store.updatePlayer(d.p4, { dama4: Number(e.target.value) || 0 });
+  if (d.p3) await store.updatePlayer(d.p3, { dama3: Number(e.target.value) || 0 });
+  if (e.target.id === 'importFile' && e.target.files[0]) {
+    try {
+      const data = JSON.parse(await e.target.files[0].text());
+      if (!confirm(`선수 ${data.players?.length || 0}명, 게임 ${data.games?.length || 0}개를 추가할까요?`)) return;
+      // id 매핑 유지: 이름이 같은 선수는 기존 선수로 합침
+      const idMap = {};
+      for (const p of data.players || []) {
+        const ex = state.players.find(x => x.name === p.name);
+        if (ex) idMap[p.id] = ex.id;
+        else { const { id, ...rest } = p; await store.addPlayer(rest); }
+      }
+      for (const p of data.players || []) if (!idMap[p.id]) idMap[p.id] = state.players.find(x => x.name === p.name)?.id || p.id;
+      for (const g of data.games || []) {
+        const { id, ...rest } = g;
+        rest.sides = rest.sides.map(s => ({ ...s, members: s.members.map(m => ({ ...m, id: idMap[m.id] || m.id })) }));
+        await store.addGame(rest);
+      }
+      toast('불러오기 완료');
+    } catch (err) { toast('파일을 읽을 수 없어요'); }
+  }
+});
+
+// ───────── 시작 ─────────
+try {
+  store = window.FIREBASE_CONFIG ? await makeFirebaseStore(window.FIREBASE_CONFIG, window.ROOM_ID || 'friends') : makeLocalStore();
+} catch (err) {
+  console.error(err); toast('Firebase 연결 실패 — 로컬 모드로 전환'); store = makeLocalStore();
+}
+const tag = $('#modeTag');
+tag.textContent = store.online ? '● 공유 중' : '이 기기에만 저장';
+tag.classList.toggle('on', store.online);
+let pending = false;
+store.subscribe(() => {
+  // 입력 중일 때 화면이 다시 그려지며 포커스가 날아가지 않도록
+  if (document.activeElement?.matches('#app input') && tab !== 'history') { pending = true; return; }
+  render();
+});
+document.addEventListener('focusout', () => setTimeout(() => { if (pending && !document.activeElement?.matches('#app input')) { pending = false; render(); } }, 0));
+</script>
+</body>
+</html>
