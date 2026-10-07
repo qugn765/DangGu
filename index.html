@@ -472,7 +472,7 @@ function renderSetup(){
   </div>` : ''}
   <div class="card">
     <span class="label">게임비 · 꼴찌가 전액</span>
-    <div class="row"><input id="fee" class="grow num" type="number" inputmode="decimal" step="1" value="${ui.fee / 1000}" style="text-align:left;font-weight:700"><span class="muted">천원</span></div>
+    <div class="row"><input id="fee" class="grow num" type="number" inputmode="decimal" step="1" value="${(setup.fee ?? 10000) / 1000}" style="text-align:left;font-weight:700"><span class="muted">천원</span></div>
     <div class="presets">${[10000,12000,15000,20000].map(v => `<button data-fee="${v}">${v/10000}만</button>`).join('')}</div>
   </div>
   <div class="actions">
@@ -774,7 +774,7 @@ function openResult(game, mode){
       if (mode === 'edit') await store.updateGame(game.id, rec); else await store.addGame(rec);
       root.innerHTML = '';
       if (mode === 'live') { live = null; await store.setLive(null); }
-      if (mode !== 'edit') { setup.picked = {}; setup.dama = {}; setup.teamDama = {A:'', B:''}; tab = 'history'; }
+      if (mode !== 'edit') { setup.picked = {}; setup.dama = {}; setup.teamDama = {A:'', B:''}; delete setup.fee; tab = 'history'; }
       toast(mode === 'edit' ? '수정했어요' : '저장했어요');
       render();
     } catch (err) { e.target.disabled = false; toast('저장 실패: ' + (err.code || err.message)); }
@@ -962,10 +962,10 @@ $('#app').addEventListener('click', async e => {
     inp.value = Math.max(0, (Number(inp.value) || 0) + Number(d.step));
     inp.dispatchEvent(new Event('change', {bubbles: true}));
   }
-  if (d.fee) { $('#fee').value = d.fee / 1000; ui.fee = Number(d.fee); saveUi(); }
+  if (d.fee) { $('#fee').value = d.fee / 1000; setup.fee = Number(d.fee); }
   if (t.id === 'startBtn' || t.id === 'manualBtn') {
     const sides = buildSides(); if (!sides) return;
-    ui.fee = Math.round((Number($('#fee').value) || 0) * 1000); saveUi();
+    ui.fee = Math.round((Number($('#fee').value) || 0) * 1000);
     const game = { kind: ui.kind, mode: ui.mode, sides, start: new Date().toISOString(), fee: ui.fee, events: [] };
     if (t.id === 'startBtn') { live = game; pushLive(); render(); }
     else openResult(game, 'manual');
@@ -1011,7 +1011,7 @@ $('#app').addEventListener('change', async e => {
   const d = e.target.dataset;
   if (d.dama) setup.dama[d.dama] = Number(e.target.value);
   if (d.tdama) setup.teamDama[d.tdama] = Number(e.target.value);
-  if (e.target.id === 'fee') { ui.fee = Math.round((Number(e.target.value) || 0) * 1000); saveUi(); }
+  if (e.target.id === 'fee') setup.fee = Math.round((Number(e.target.value) || 0) * 1000);   // 이번 게임에만 적용, 기본은 항상 10(천원)
   if (d.cush) { ui.cushion = Math.max(0, Number(e.target.value) || 0); e.target.value = ui.cushion; saveUi(); }
   if (d.p4) await store.updatePlayer(d.p4, { dama4: Number(e.target.value) || 0 });
   if (d.p3) await store.updatePlayer(d.p3, { dama3: Number(e.target.value) || 0 });
