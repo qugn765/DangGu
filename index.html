@@ -632,7 +632,16 @@ function openResult(game, mode){
   let fee = game.fee;
 
   const root = $('#modalRoot');
-  const finishedOrder = () => S.map((_, i) => i).filter(i => S[i].remaining <= 0).sort((a, b) => ranks[a] - ranks[b]);
+  // 3명 이상: 순위 + 진행 기록(끝난 시간, 그때 남은 다마)만 입력 → 위쪽 남은 다마 칸은 숨기고 자동 계산
+  const evMode = multi && (mode === 'manual' || S.filter(s => s.remaining > 0).length <= 1);
+  const finishedOrder = () => S.map((_, i) => i).filter(i => evMode ? ranks[i] < n : S[i].remaining <= 0).sort((a, b) => ranks[a] - ranks[b]);
+  const applyEv = () => {
+    if (!evMode) return;
+    S.forEach((s, i) => { if (ranks[i] < n) s.remaining = 0; });
+    const last = ranks.indexOf(n), prev = ranks.indexOf(n - 1);
+    const snap = evRem[prev]?.[last];
+    S[last].remaining = snap != null ? snap : (S[last].remaining > 0 ? S[last].remaining : S[last].dama + cushOf(S[last]));
+  };
 
   const draw = () => {
     const order = S.map((_, i) => i).sort((a, b) => ranks[a] - ranks[b]);
@@ -653,13 +662,13 @@ function openResult(game, mode){
     root.innerHTML = `<div class="modal" id="mbg"><div class="sheet">
       <div class="handle"></div>
       <h3>${mode === 'edit' ? '기록 수정' : mode === 'manual' ? '결과 입력' : '게임 종료'}</h3>
-      <div class="muted" style="margin-bottom:12px">${game.kind} ${game.mode}${multi ? ` · ${n}명` : ''} · 순위와 최종 남은 다마를 확인하세요</div>
+      <div class="muted" style="margin-bottom:12px">${game.kind} ${game.mode}${multi ? ` · ${n}명` : ''} · ${evMode ? '순위를 고르고, 누가 몇 분에 끝났는지와 그때 남은 다마를 입력하세요' : '순위와 최종 남은 다마를 확인하세요'}</div>
       ${order.map(i => { const s = S[i]; return `<div class="picked">
         ${rankSel(i)}
         ${s.team ? `<span class="team-badge ${s.team}">${s.team}</span>` : ''}${avGroup(s.members, s.team ? 'sm' : '')}
         <div class="grow"><b>${sideNames(s)}</b><div class="muted">다마 ${s.dama}${cushOf(s) ? ` + 3쿠 ${cushOf(s) / 10}개` : ''}</div></div>
-        <input type="number" inputmode="numeric" data-rem="${i}" value="${damaLeft(s)}" style="font-weight:700;width:64px" aria-label="남은 다마">
-        ${cushOf(s) ? `<input type="number" inputmode="numeric" data-cr="${i}" value="${cushLeftN(s)}" style="font-weight:700;width:46px" aria-label="남은 3쿠션"><span class="muted">3쿠</span>` : ''}
+        ${evMode ? (ranks[i] < n ? '<span class="muted">끝</span>' : `<span class="muted">최종 <b class="final-left" style="color:var(--text)">${fmtLeft(s, s.remaining)}</b> 남음</span>`) : `<input type="number" inputmode="numeric" data-rem="${i}" value="${damaLeft(s)}" style="font-weight:700;width:64px" aria-label="남은 다마">
+        ${cushOf(s) ? `<input type="number" inputmode="numeric" data-cr="${i}" value="${cushLeftN(s)}" style="font-weight:700;width:46px" aria-label="남은 3쿠션"><span class="muted">3쿠</span>` : ''}`}
       </div>`; }).join('')}
       ${evHtml}
       <div class="grid2" style="margin-top:16px">
@@ -676,6 +685,7 @@ function openResult(game, mode){
       </div>
     </div></div>`;
   };
+  applyEv();
   draw();
   let lastFinKey = S.map(s => s.remaining <= 0 ? 1 : 0).join('');
 
@@ -695,6 +705,8 @@ function openResult(game, mode){
       const i = Number(d.rank), nr = Number(v), j = ranks.indexOf(nr);
       if (j >= 0 && j !== i) ranks[j] = ranks[i];   // 순위 맞바꾸기
       ranks[i] = nr;
+      if (nr === 1 && !evMode) S[i].remaining = 0;   // 1등으로 고르면 남은 다마·3쿠 0
+      applyEv();
       if (!touchedPay) payer = ranks.indexOf(n);
     }
     if (d.evmin !== undefined) evMin[d.evmin] = numOrNull(v);
@@ -703,6 +715,7 @@ function openResult(game, mode){
       const [i, j] = evKey.split(':').map(Number);
       const dv = numOrNull(root.querySelector(`[data-evrem="${evKey}"]`)?.value), cv = numOrNull(root.querySelector(`[data-evc="${evKey}"]`)?.value);
       (evRem[i] ??= [])[j] = dv == null && cv == null ? null : cushOf(S[j]) ? joinLeft(S[j], dv || 0, cv ?? cushOf(S[j]) / 10) : dv;
+      if (evMode && ranks[i] === n - 1 && ranks[j] === n) { applyEv(); const el = root.querySelector('.final-left'); if (el) el.textContent = fmtLeft(S[j], S[j].remaining); }
     }
     if (e.target.id === 'rPay') { touchedPay = true; payer = Number(v); }
     if (e.target.id === 'rFee') fee = Number(v) || 0;
@@ -724,6 +737,8 @@ function openResult(game, mode){
     if (e.target.id !== 'rSave') return;
     // 포커스 중인 입력값 반영
     document.activeElement?.dispatchEvent?.(new Event('change', {bubbles: true}));
+    applyEv();
+    if (!Number(dur) && evMode && evMin[ranks.indexOf(n - 1)]) dur = evMin[ranks.indexOf(n - 1)];   // 총 소요 비우면 마지막으로 끝난 시간
     const D = Number(dur);
     if (!D || D <= 0) return toast('총 소요 시간(분)을 입력하세요');
     if (new Set(ranks).size !== n) return toast('순위가 겹쳐요');
